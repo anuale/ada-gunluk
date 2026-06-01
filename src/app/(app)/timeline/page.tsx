@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import {
   UtensilsCrossed,
   Moon,
@@ -105,6 +106,7 @@ function TimelinePageInner() {
   useEffect(() => {
     fetchChild().then((cid) => {
       if (cid) fetchLogs(cid);
+      else setLoading(false);
     });
   }, [fetchChild, fetchLogs]);
 
@@ -203,7 +205,22 @@ function TimelinePageInner() {
         </button>
       </div>
 
-      {loading ? (
+      {!childId && !loading ? (
+        <div className="bg-surface rounded-2xl p-12 shadow-sm border border-outline-variant/10 text-center">
+          <Plus size={28} className="text-on-surface-variant/40 mx-auto mb-3" />
+          <h3 className="font-serif text-lg text-on-surface mb-2">Önce bir çocuk profili ekleyin</h3>
+          <p className="text-sm text-on-surface-variant mb-4">
+            Günlük takip için bir çocuk profili oluşturmalısınız.
+          </p>
+          <Link
+            href="/children/new"
+            className="inline-flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-full text-sm font-medium hover:bg-surface-tint transition-colors"
+          >
+            <Plus size={16} />
+            Çocuk Ekle
+          </Link>
+        </div>
+      ) : loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-surface rounded-2xl p-5 animate-pulse">

@@ -9,6 +9,7 @@ import {
   Droplets,
   Lightbulb,
   Syringe,
+  Plus,
 } from "lucide-react";
 import { formatDuration, formatTimeAgo } from "@/components/tracking/timer";
 
@@ -91,14 +92,22 @@ export default function DashboardPage() {
               <h2 className="font-serif text-xl md:text-2xl mb-1">
                 Ada&apos;nın Günlüğü&apos;ne Hoş Geldiniz
               </h2>
-              <p className="text-sm opacity-90">
+              <p className="text-sm opacity-90 mb-3">
                 Başlamak için bir çocuk profili ekleyin.
               </p>
+              <Link
+                href="/children/new"
+                className="inline-flex items-center gap-2 bg-surface text-primary px-4 py-2.5 rounded-full text-sm font-medium hover:bg-surface-container-low transition-colors"
+              >
+                <Plus size={16} />
+                Çocuk Ekle
+              </Link>
             </>
           )}
         </div>
       </section>
 
+      {child && (
       <section>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <QuickAction
@@ -127,6 +136,7 @@ export default function DashboardPage() {
           />
         </div>
       </section>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
