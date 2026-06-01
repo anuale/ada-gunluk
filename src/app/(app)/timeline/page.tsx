@@ -311,16 +311,17 @@ function TimelinePageInner() {
                     <div
                       key={log.id}
                       onClick={() => isFeeding && setEditingLog(log)}
-                      className={`bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant/10 flex items-start gap-3 ${isFeeding ? "cursor-pointer hover:bg-surface-container-low active:bg-surface-container-high transition-colors group" : ""}`}
+                      className={`bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant/10 flex items-start gap-3 ${isFeeding ? "cursor-pointer hover:bg-surface-container-low active:bg-surface-container-high transition-colors" : ""}`}
                     >
-                      <div className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0 mt-0.5 ${isFeeding ? "group-hover:scale-105 transition-transform" : ""}`}>
+                      <div className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0 mt-0.5`}>
                         <Icon size={18} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <h3 className="text-sm font-medium text-on-surface">{getLogLabel(log.type)}</h3>
                           {isFeeding && (
-                            <span className="text-[10px] text-primary/50 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-[10px] text-primary/60 font-medium inline-flex items-center gap-0.5">
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                               düzelt
                             </span>
                           )}
