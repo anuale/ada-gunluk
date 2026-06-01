@@ -3,7 +3,7 @@ services:
     image: ghcr.io/anuale/ada-gunluk:latest
     container_name: ada-gunluk
     ports:
-      - "3000:3000"
+      - "3100:3000"
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@ada-db:5432/ada_gunluk}
       - AUTH_SECRET=${AUTH_SECRET}
