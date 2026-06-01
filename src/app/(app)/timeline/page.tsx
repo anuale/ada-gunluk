@@ -177,9 +177,7 @@ function TimelinePageInner() {
           const duration = new Date(log.endedAt).getTime() - new Date(log.startedAt).getTime();
           return `${formatDuration(duration)} • Kalite: ${"⭐".repeat((d.quality as number) || 3)}`;
         }
-        return formatDuration(
-          (d.quality ? 0 : 0)
-        ) || "—";
+        return "—";
       }
       case "diaper": {
         const dt = d.diaperType as string;
@@ -191,6 +189,88 @@ function TimelinePageInner() {
       default: return "";
     }
   };
+
+  const getLogDetail = (log: DailyLog) => {
+    const d = log.data;
+    if (!d) return null;
+
+    switch (log.type) {
+      case "feeding": {
+        const ft = d.feedType as string;
+        return (
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-1">
+            {ft === "breast" ? (
+              <>
+                <span>Anne Sütü</span>
+                {(d.leftDuration as number) > 0 && (
+                  <span>Sol: {Math.floor((d.leftDuration as number) / 60000)} dk</span>
+                )}
+                {(d.rightDuration as number) > 0 && (
+                  <span>Sağ: {Math.floor((d.rightDuration as number) / 60000)} dk</span>
+                )}
+              </>
+            ) : ft === "formula" ? (
+              <span>Formül • {d.amount || "—"} ml</span>
+            ) : (
+              <span>Ek Gıda • {d.amount || "—"}</span>
+            )}
+          </div>
+        );
+      }
+      case "sleep": {
+        const dur = log.startedAt && log.endedAt
+          ? new Date(log.endedAt).getTime() - new Date(log.startedAt).getTime()
+          : 0;
+        const q = d.quality as number || 3;
+        const loc = d.location as string;
+        const fa = d.fallAsleep as string;
+        const locLabels: Record<string, string> = { crib: "Beşik", parents_bed: "Ebeveyn yatağı", stroller: "Bebek arabası", car_seat: "Araba koltuğu" };
+        const faLabels: Record<string, string> = { self: "Kendi kendine", breastfeeding: "Emzirerek", rocking: "Sallanarak", stroller: "Arabada", other: "Diğer" };
+        return (
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-1">
+            {dur > 0 && <span>{formatDuration(dur)}</span>}
+            <span>{"⭐".repeat(q)}</span>
+            {loc && <span>{locLabels[loc] || loc}</span>}
+            {fa && <span>{faLabels[fa] || fa}</span>}
+          </div>
+        );
+      }
+      case "diaper": {
+        const dt = d.diaperType as string;
+        const col = d.color as string;
+        const con = d.consistency as string;
+        const colLabels: Record<string, string> = { yellow: "Sarı", green: "Yeşil", brown: "Kahverengi", dark_green: "Koyu Yeşil", mustard: "Hardal" };
+        const conLabels: Record<string, string> = { liquid: "Sıvı", soft: "Yumuşak", formed: "Şekilli", hard: "Sert", seedy: "Tanecikli" };
+        return (
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-1">
+            <span>{dt === "wet" ? "Islak" : dt === "dirty" ? "Kaka" : "Islak + Kaka"}</span>
+            {col && <span>Renk: {colLabels[col] || col}</span>}
+            {con && <span>Kıvam: {conLabels[con] || con}</span>}
+          </div>
+        );
+      }
+      case "ec": {
+        const cue = d.cue as string;
+        const pos = d.position as string;
+        const posLabels: Record<string, string> = { sink: "Lavabo", toilet: "Klozet", adapter: "Tuvalet adaptörü", potty: "Lazımlık", outside: "Dışarıda" };
+        return (
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-1">
+            <span>{(d.success as boolean) ? "✅ Başarılı" : "❌ Kaçırma"}</span>
+            {cue && <span>İşaret: {cue}</span>}
+            {pos && <span>{posLabels[pos] || pos}</span>}
+          </div>
+        );
+      }
+      default: return null;
+    }
+  };
+
+  const groupedLogs = logs.reduce((acc, log) => {
+    const date = new Date(log.startedAt).toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    if (!acc[date]) acc[date] = [];
+    acc[date].push(log);
+    return acc;
+  }, {} as Record<string, DailyLog[]>);
 
   return (
     <div className="space-y-6">
@@ -250,50 +330,52 @@ function TimelinePageInner() {
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {logs.map((log) => {
-            const Icon = getLogIcon(log.type);
-            const color = getLogColor(log.type);
+        <div className="space-y-4">
+          {Object.entries(groupedLogs).map(([date, dateLogs]) => (
+            <div key={date}>
+              <h3 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-1 mb-2">
+                {date}
+              </h3>
+              <div className="space-y-2">
+                {dateLogs.map((log) => {
+                  const Icon = getLogIcon(log.type);
+                  const color = getLogColor(log.type);
 
-            return (
-              <div
-                key={log.id}
-                className="bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant/10 flex items-start gap-3"
-              >
-                <div className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0 mt-0.5`}>
-                  <Icon size={18} />
-                </div>
+                  return (
+                    <div
+                      key={log.id}
+                      className="bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant/10 flex items-start gap-3"
+                    >
+                      <div className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0 mt-0.5`}>
+                        <Icon size={18} />
+                      </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-medium text-on-surface">
-                      {getLogLabel(log.type)}
-                    </h3>
-                    <span className="text-xs text-on-surface-variant">
-                      {formatTimeAgo(new Date(log.startedAt))}
-                    </span>
-                  </div>
-                  <p className="text-sm text-on-surface-variant mt-0.5">
-                    {getLogSummary(log)}
-                  </p>
-                  {log.notes && (
-                    <p className="text-xs text-on-surface-variant/70 mt-1 italic">
-                      &ldquo;{log.notes}&rdquo;
-                    </p>
-                  )}
-                </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-medium text-on-surface">
+                            {getLogLabel(log.type)}
+                          </h3>
+                        </div>
+                        {getLogDetail(log)}
+                        {log.notes && (
+                          <p className="text-xs text-on-surface-variant/60 mt-1 italic">
+                            &ldquo;{log.notes}&rdquo;
+                          </p>
+                        )}
+                      </div>
 
-                <span className="text-xs text-on-surface-variant/50 shrink-0">
-                  {new Date(log.startedAt).toLocaleTimeString("tr-TR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
+                      <span className="text-xs text-on-surface-variant/50 shrink-0">
+                        {new Date(log.startedAt).toLocaleTimeString("tr-TR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
-      )}
+            </div>
+          ))}
 
       <FAB onSelect={handleOpenLog} open={showFabMenu} onToggle={() => setShowFabMenu(!showFabMenu)} />
 
