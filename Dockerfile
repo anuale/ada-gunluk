@@ -7,12 +7,9 @@ FROM base AS deps
 ENV NODE_ENV=development
 RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts && \
-    cp -R node_modules /all_node_modules && \
-    npm ci --only=production --ignore-scripts && \
-    cp -R node_modules /prod_node_modules && \
-    cp -R /all_node_modules ./node_modules && \
-    rm -rf /all_node_modules
+RUN npm ci && cp -R node_modules /all_node_modules && \
+    npm ci --only=production && cp -R node_modules /prod_node_modules && \
+    cp -R /all_node_modules ./node_modules && rm -rf /all_node_modules
 
 FROM base AS builder
 ENV NODE_ENV=development
