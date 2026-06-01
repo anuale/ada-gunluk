@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   UtensilsCrossed,
   Moon,
@@ -31,6 +32,7 @@ interface DailyLog {
 export default function DashboardPage() {
   const [child, setChild] = useState<Child | null>(null);
   const [logs, setLogs] = useState<DailyLog[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     fetch("/api/children")
@@ -41,6 +43,8 @@ export default function DashboardPage() {
           setChild(c);
           const today = new Date().toISOString().split("T")[0];
           return fetch(`/api/daily-logs?childId=${c.id}&date=${today}`);
+        } else {
+          router.push("/children/new");
         }
       })
       .then((r) => r?.json())
