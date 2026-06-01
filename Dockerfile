@@ -2,10 +2,9 @@ ARG NODE_VERSION=22
 
 FROM node:${NODE_VERSION}-alpine AS builder
 WORKDIR /app
-ENV NODE_ENV=development
 RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json ./
-RUN NODE_ENV=development npm ci
+RUN npm ci
 COPY . .
 RUN npx prisma generate
 RUN npm run build

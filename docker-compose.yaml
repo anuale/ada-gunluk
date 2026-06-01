@@ -1,8 +1,7 @@
 services:
   ada-gunluk:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/anuale/ada-gunluk:latest
+    pull_policy: always
     container_name: ada-gunluk
     ports:
       - "3100:3000"
