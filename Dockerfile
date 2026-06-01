@@ -2,7 +2,6 @@ ARG NODE_VERSION=22
 
 FROM node:${NODE_VERSION}-alpine AS base
 WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
 
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
@@ -15,20 +14,24 @@ RUN npm ci --ignore-scripts && \
     rm -rf /all_node_modules
 
 FROM base AS builder
+ARG NODE_ENV=development
+ENV NODE_ENV=$NODE_ENV
+ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
 RUN npm run build
 
 FROM base AS runner
-ENV NODE_ENV=production
+ARG NODE_ENV=production
+ENV NODE_ENV=$NODE_ENV
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=deps /prod_node_modules ./node_modules
 
 EXPOSE 3000
-ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
-
 CMD ["node", "server.js"]

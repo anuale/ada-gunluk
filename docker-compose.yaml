@@ -5,24 +5,24 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@ada-db:5432/ada_gunluk}
       - AUTH_SECRET=${AUTH_SECRET}
       - AUTH_URL=${AUTH_URL:-http://localhost:3000}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
-      - NODE_ENV=production
     restart: unless-stopped
     networks:
       - ada-network
     depends_on:
-      - ada-db
+      ada-db:
+        condition: service_healthy
 
   ada-db:
     image: postgres:17-alpine
     container_name: ada-db
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-ada_gunluk}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ada_gunluk
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
