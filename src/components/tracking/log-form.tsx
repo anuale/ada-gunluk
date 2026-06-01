@@ -28,17 +28,22 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
   const [leftDuration, setLeftDuration] = useState(0);
   const [rightDuration, setRightDuration] = useState(0);
   const [breastSide, setBreastSide] = useState<"left" | "right">("left");
+  const [breastMinutes, setBreastMinutes] = useState("");
+  const [breastSeconds, setBreastSeconds] = useState("");
 
   // Sleep state
   const [sleepDuration, setSleepDuration] = useState(0);
   const [sleepQuality, setSleepQuality] = useState(3);
   const [fallAsleep, setFallAsleep] = useState("");
   const [sleepLocation, setSleepLocation] = useState("");
+  const [sleepHours, setSleepHours] = useState("");
+  const [sleepMins, setSleepMins] = useState("");
 
   // Diaper state
   const [diaperType, setDiaperType] = useState<"wet" | "dirty" | "both">("wet");
   const [diaperColor, setDiaperColor] = useState("");
   const [diaperConsistency, setDiaperConsistency] = useState("");
+  const [diaperTime, setDiaperTime] = useState(new Date().toTimeString().slice(0, 5));
 
   // EC state
   const [ecSuccess, setEcSuccess] = useState(true);
@@ -46,30 +51,35 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
   const [ecPosition, setEcPosition] = useState("");
 
   const config = {
-    feeding: {
-      title: "Beslenme Kaydı",
-      icon: UtensilsCrossed,
-      color: "bg-feeding text-feeding-text",
-    },
-    sleep: {
-      title: "Uyku Kaydı",
-      icon: Moon,
-      color: "bg-sleep text-sleep-text",
-    },
-    diaper: {
-      title: "Alt Değiştirme",
-      icon: Baby,
-      color: "bg-diaper text-diaper-text",
-    },
-    ec: {
-      title: "Tuvalet İletişimi",
-      icon: Droplets,
-      color: "bg-ec text-ec-text",
-    },
+    feeding: { title: "Beslenme Kaydı", icon: UtensilsCrossed, color: "bg-feeding text-feeding-text" },
+    sleep: { title: "Uyku Kaydı", icon: Moon, color: "bg-sleep text-sleep-text" },
+    diaper: { title: "Alt Değiştirme", icon: Baby, color: "bg-diaper text-diaper-text" },
+    ec: { title: "Tuvalet İletişimi", icon: Droplets, color: "bg-ec text-ec-text" },
   };
 
   const c = config[type];
   const Icon = c.icon;
+
+  const applyManualBreastTime = () => {
+    const mins = parseInt(breastMinutes) || 0;
+    const secs = parseInt(breastSeconds) || 0;
+    const ms = (mins * 60 + secs) * 1000;
+    if (ms === 0) return;
+    if (breastSide === "left") setLeftDuration(leftDuration + ms);
+    else setRightDuration(rightDuration + ms);
+    setBreastMinutes("");
+    setBreastSeconds("");
+  };
+
+  const applyManualSleepTime = () => {
+    const hrs = parseInt(sleepHours) || 0;
+    const mins = parseInt(sleepMins) || 0;
+    const ms = (hrs * 60 + mins) * 60 * 1000;
+    if (ms === 0) return;
+    setSleepDuration(sleepDuration + ms);
+    setSleepHours("");
+    setSleepMins("");
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -95,6 +105,9 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
         location: sleepLocation || null,
       };
     } else if (type === "diaper") {
+      const today = new Date().toISOString().split("T")[0];
+      const occurrenceTime = new Date(`${today}T${diaperTime}:00`).toISOString();
+      startedAt = occurrenceTime;
       logData = {
         diaperType,
         color: diaperColor || null,
@@ -187,7 +200,7 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
                           : "bg-surface-container-low text-on-surface-variant"
                       }`}
                     >
-                      Sol Göğüs
+                      Sol Meme
                     </button>
                     <button
                       type="button"
@@ -198,7 +211,7 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
                           : "bg-surface-container-low text-on-surface-variant"
                       }`}
                     >
-                      Sağ Göğüs
+                      Sağ Meme
                     </button>
                   </div>
                   <Timer
@@ -208,6 +221,35 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
                       else setRightDuration(rightDuration + ms);
                     }}
                   />
+                  <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+                    <span>veya süre gir:</span>
+                    <input
+                      type="number"
+                      value={breastMinutes}
+                      onChange={(e) => setBreastMinutes(e.target.value)}
+                      placeholder="dk"
+                      className="w-14 px-2 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-sm"
+                      min="0"
+                    />
+                    <span>dk</span>
+                    <input
+                      type="number"
+                      value={breastSeconds}
+                      onChange={(e) => setBreastSeconds(e.target.value)}
+                      placeholder="sn"
+                      className="w-14 px-2 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-sm"
+                      min="0"
+                      max="59"
+                    />
+                    <span>sn</span>
+                    <button
+                      type="button"
+                      onClick={applyManualBreastTime}
+                      className="px-2.5 py-1.5 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container text-xs font-medium"
+                    >
+                      Ekle
+                    </button>
+                  </div>
                   {(leftDuration > 0 || rightDuration > 0) && (
                     <p className="text-xs text-on-surface-variant">
                       Sol: {Math.floor(leftDuration / 60000)} dk • Sağ: {Math.floor(rightDuration / 60000)} dk
@@ -236,6 +278,35 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
           {type === "sleep" && (
             <div className="space-y-4">
               <Timer label="Uyku süresi" onStop={(ms) => setSleepDuration(sleepDuration + ms)} />
+              <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+                <span>veya süre gir:</span>
+                <input
+                  type="number"
+                  value={sleepHours}
+                  onChange={(e) => setSleepHours(e.target.value)}
+                  placeholder="sa"
+                  className="w-14 px-2 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-sm"
+                  min="0"
+                />
+                <span>sa</span>
+                <input
+                  type="number"
+                  value={sleepMins}
+                  onChange={(e) => setSleepMins(e.target.value)}
+                  placeholder="dk"
+                  className="w-14 px-2 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-sm"
+                  min="0"
+                  max="59"
+                />
+                <span>dk</span>
+                <button
+                  type="button"
+                  onClick={applyManualSleepTime}
+                  className="px-2.5 py-1.5 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container text-xs font-medium"
+                >
+                  Ekle
+                </button>
+              </div>
               {sleepDuration > 0 && (
                 <p className="text-sm text-on-surface-variant">
                   Toplam: {Math.floor(sleepDuration / 60000)} dakika
@@ -266,9 +337,7 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-on-surface mb-1.5">
-                    Uykuya Dalma
-                  </label>
+                  <label className="block text-sm font-medium text-on-surface mb-1.5">Uykuya Dalma</label>
                   <select
                     value={fallAsleep}
                     onChange={(e) => setFallAsleep(e.target.value)}
@@ -282,11 +351,8 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
                     <option value="other">Diğer</option>
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-on-surface mb-1.5">
-                    Uyku Yeri
-                  </label>
+                  <label className="block text-sm font-medium text-on-surface mb-1.5">Uyku Yeri</label>
                   <select
                     value={sleepLocation}
                     onChange={(e) => setSleepLocation(e.target.value)}
@@ -306,6 +372,16 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
 
           {type === "diaper" && (
             <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-on-surface mb-1.5">Saat Kaçta</label>
+                <input
+                  type="time"
+                  value={diaperTime}
+                  onChange={(e) => setDiaperTime(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm focus:outline-none focus:border-primary"
+                />
+              </div>
+
               <div className="flex gap-2">
                 {(["wet", "dirty", "both"] as const).map((t) => (
                   <button
@@ -326,9 +402,7 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
               {(diaperType === "dirty" || diaperType === "both") && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-on-surface mb-1.5">
-                      Renk
-                    </label>
+                    <label className="block text-sm font-medium text-on-surface mb-1.5">Renk</label>
                     <select
                       value={diaperColor}
                       onChange={(e) => setDiaperColor(e.target.value)}
@@ -344,9 +418,7 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-on-surface mb-1.5">
-                      Kıvam
-                    </label>
+                    <label className="block text-sm font-medium text-on-surface mb-1.5">Kıvam</label>
                     <select
                       value={diaperConsistency}
                       onChange={(e) => setDiaperConsistency(e.target.value)}
@@ -394,9 +466,7 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-on-surface mb-1.5">
-                    İşaret Sesi
-                  </label>
+                  <label className="block text-sm font-medium text-on-surface mb-1.5">İşaret Sesi</label>
                   <input
                     type="text"
                     value={ecCue}
@@ -406,9 +476,7 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-on-surface mb-1.5">
-                    Pozisyon
-                  </label>
+                  <label className="block text-sm font-medium text-on-surface mb-1.5">Pozisyon</label>
                   <select
                     value={ecPosition}
                     onChange={(e) => setEcPosition(e.target.value)}

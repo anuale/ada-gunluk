@@ -236,14 +236,17 @@ function TimelinePageInner() {
         </div>
       ) : logs.length === 0 ? (
         <div className="bg-surface rounded-2xl p-12 shadow-sm border border-outline-variant/10 text-center">
-          <div className="w-16 h-16 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center mx-auto mb-4">
+          <button
+            onClick={() => setShowFabMenu(true)}
+            className="w-16 h-16 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center mx-auto mb-4 hover:bg-primary-container/80 transition-colors active:scale-95"
+          >
             <Plus size={28} />
-          </div>
+          </button>
           <h2 className="font-serif text-lg text-on-surface mb-2">
             Bugün için henüz kayıt yok
           </h2>
           <p className="text-sm text-on-surface-variant mb-6">
-            İlk kaydınızı eklemek için aşağıdaki + butonuna dokunun.
+            Yeni kayıt eklemek için butona dokunun.
           </p>
         </div>
       ) : (
