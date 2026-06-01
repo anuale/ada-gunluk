@@ -166,7 +166,7 @@ export default function DashboardPage() {
           <article className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant/10">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-serif text-lg text-on-surface">
-                Bugünün Özeti
+                Bugünün Özeti <span className="text-[10px] text-on-surface-variant/30 font-sans align-top">v2</span>
               </h3>
               <Link
                 href="/timeline"

@@ -121,6 +121,7 @@ function TimelinePageInner() {
   const handleOpenLog = (type: "feeding" | "sleep" | "diaper" | "ec") => {
     setLogType(type);
     setShowLogForm(true);
+    setEditingLog(null);
     setShowFabMenu(false);
   };
 
@@ -243,7 +244,7 @@ function TimelinePageInner() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-2xl text-primary">Günlük</h1>
+        <h1 className="font-serif text-2xl text-primary">Günlük <span className="text-[10px] text-on-surface-variant/30 font-sans align-top">v2</span></h1>
         <button
           onClick={() => setShowReflection(true)}
           className="flex items-center gap-1.5 text-sm font-medium text-primary hover:bg-primary-container/30 px-3 py-1.5 rounded-full transition-colors"
@@ -345,6 +346,7 @@ function TimelinePageInner() {
 
       {showLogForm && childId && !editingLog && (
         <LogForm
+          key="new"
           type={logType}
           childId={childId}
           onClose={() => setShowLogForm(false)}
@@ -354,6 +356,7 @@ function TimelinePageInner() {
 
       {editingLog && childId && (
         <LogForm
+          key={editingLog.id}
           type={editingLog.type}
           childId={childId}
           existingLog={editingLog}
