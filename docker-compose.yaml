@@ -1,6 +1,6 @@
 services:
   ada-gunluk:
-    build: .
+    image: ghcr.io/anuale/ada-gunluk:latest
     container_name: ada-gunluk
     ports:
       - "3000:3000"

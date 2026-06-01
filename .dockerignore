@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env.example
+*.md
+.DS_Store
+ada-gunluk-google-stitch-design
+competitive-analysis.md
+supplemental-research.md
+BOOK_SUMMARIES.md
+ui-ux-design-prompt-google-stitch.md
+Çocuk Yetiştirme Kitapları
