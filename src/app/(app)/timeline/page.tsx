@@ -13,7 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { LogForm } from "@/components/tracking/log-form";
-import { formatDuration, formatTimeAgo } from "@/components/tracking/timer";
+import { formatDuration } from "@/components/tracking/timer";
 import { EndOfDayReflection } from "@/components/tracking/reflection";
 import toast from "react-hot-toast";
 
@@ -157,39 +157,6 @@ function TimelinePageInner() {
     }
   };
 
-  const getLogSummary = (log: DailyLog): string => {
-    const d = log.data;
-    if (!d) return log.notes || "";
-
-    switch (log.type) {
-      case "feeding": {
-        const ft = d.feedType as string;
-        if (ft === "breast") {
-          const l = (d.leftDuration as number) || 0;
-          const r = (d.rightDuration as number) || 0;
-          return `Anne Sütü • ${Math.floor((l + r) / 60000)} dk`;
-        }
-        if (ft === "formula") return `Formül • ${d.amount || "—"} ml`;
-        return `Ek Gıda • ${d.amount || "—"}`;
-      }
-      case "sleep": {
-        if (log.startedAt && log.endedAt) {
-          const duration = new Date(log.endedAt).getTime() - new Date(log.startedAt).getTime();
-          return `${formatDuration(duration)} • Kalite: ${"⭐".repeat((d.quality as number) || 3)}`;
-        }
-        return "—";
-      }
-      case "diaper": {
-        const dt = d.diaperType as string;
-        return dt === "wet" ? "Islak" : dt === "dirty" ? "Kaka" : "Islak + Kaka";
-      }
-      case "ec": {
-        return (d.success as boolean) ? "✅ Başarılı" : "❌ Kaçırma";
-      }
-      default: return "";
-    }
-  };
-
   const getLogDetail = (log: DailyLog) => {
     const d = log.data;
     if (!d) return null;
@@ -197,30 +164,30 @@ function TimelinePageInner() {
     switch (log.type) {
       case "feeding": {
         const ft = d.feedType as string;
+        if (ft === "breast") {
+          return (
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-1">
+              <span>Anne Sütü</span>
+              {(d.leftDuration as number) > 0 && <span>Sol: {Math.floor((d.leftDuration as number) / 60000)} dk</span>}
+              {(d.rightDuration as number) > 0 && <span>Sağ: {Math.floor((d.rightDuration as number) / 60000)} dk</span>}
+            </div>
+          );
+        }
+        if (ft === "formula") {
+          return (
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-1">
+              <span>Formül • {(d.amount as string) || "—"} ml</span>
+            </div>
+          );
+        }
         return (
           <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-1">
-            {ft === "breast" ? (
-              <>
-                <span>Anne Sütü</span>
-                {(d.leftDuration as number) > 0 && (
-                  <span>Sol: {Math.floor((d.leftDuration as number) / 60000)} dk</span>
-                )}
-                {(d.rightDuration as number) > 0 && (
-                  <span>Sağ: {Math.floor((d.rightDuration as number) / 60000)} dk</span>
-                )}
-              </>
-            ) : ft === "formula" ? (
-              <span>Formül • {d.amount || "—"} ml</span>
-            ) : (
-              <span>Ek Gıda • {d.amount || "—"}</span>
-            )}
+            <span>Ek Gıda • {(d.amount as string) || "—"}</span>
           </div>
         );
       }
       case "sleep": {
-        const dur = log.startedAt && log.endedAt
-          ? new Date(log.endedAt).getTime() - new Date(log.startedAt).getTime()
-          : 0;
+        const dur = log.startedAt && log.endedAt ? new Date(log.endedAt).getTime() - new Date(log.startedAt).getTime() : 0;
         const q = d.quality as number || 3;
         const loc = d.location as string;
         const fa = d.fallAsleep as string;
@@ -333,42 +300,25 @@ function TimelinePageInner() {
         <div className="space-y-4">
           {Object.entries(groupedLogs).map(([date, dateLogs]) => (
             <div key={date}>
-              <h3 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-1 mb-2">
-                {date}
-              </h3>
+              <h3 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-1 mb-2">{date}</h3>
               <div className="space-y-2">
                 {dateLogs.map((log) => {
                   const Icon = getLogIcon(log.type);
                   const color = getLogColor(log.type);
-
                   return (
-                    <div
-                      key={log.id}
-                      className="bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant/10 flex items-start gap-3"
-                    >
+                    <div key={log.id} className="bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant/10 flex items-start gap-3">
                       <div className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0 mt-0.5`}>
                         <Icon size={18} />
                       </div>
-
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-medium text-on-surface">
-                            {getLogLabel(log.type)}
-                          </h3>
+                          <h3 className="text-sm font-medium text-on-surface">{getLogLabel(log.type)}</h3>
                         </div>
                         {getLogDetail(log)}
-                        {log.notes && (
-                          <p className="text-xs text-on-surface-variant/60 mt-1 italic">
-                            &ldquo;{log.notes}&rdquo;
-                          </p>
-                        )}
+                        {log.notes && <p className="text-xs text-on-surface-variant/60 mt-1 italic">&ldquo;{log.notes}&rdquo;</p>}
                       </div>
-
                       <span className="text-xs text-on-surface-variant/50 shrink-0">
-                        {new Date(log.startedAt).toLocaleTimeString("tr-TR", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {new Date(log.startedAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
                   );
@@ -376,6 +326,8 @@ function TimelinePageInner() {
               </div>
             </div>
           ))}
+        </div>
+      )}
 
       <FAB onSelect={handleOpenLog} open={showFabMenu} onToggle={() => setShowFabMenu(!showFabMenu)} />
 
