@@ -4,6 +4,7 @@ FROM node:${NODE_VERSION}-alpine AS base
 WORKDIR /app
 
 FROM base AS deps
+ENV NODE_ENV=development
 RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts && \
@@ -14,8 +15,7 @@ RUN npm ci --ignore-scripts && \
     rm -rf /all_node_modules
 
 FROM base AS builder
-ARG NODE_ENV=development
-ENV NODE_ENV=$NODE_ENV
+ENV NODE_ENV=development
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -23,8 +23,7 @@ RUN npx prisma generate
 RUN npm run build
 
 FROM base AS runner
-ARG NODE_ENV=production
-ENV NODE_ENV=$NODE_ENV
+ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
