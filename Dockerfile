@@ -7,8 +7,6 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 RUN npx prisma generate
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 FROM node:${NODE_VERSION}-alpine AS runner
