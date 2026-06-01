@@ -22,6 +22,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/package.json ./package.json
+COPY start.sh ./start.sh
+RUN chmod +x start.sh
 
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["./start.sh"]
