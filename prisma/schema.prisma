@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Family {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  users     User[]
+  children  Child[]
+  notes     Note[]
+  reports   Report[]
+}
+
+model User {
+  id            String    @id @default(cuid())
+  familyId      String
+  family        Family    @relation(fields: [familyId], references: [id])
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  image         String?
+  role          String    @default("caregiver")
+  createdAt     DateTime  @default(now())
+  dailyLogs     DailyLog[]
+  reflections   DailyReflection[]
+  notes         Note[]
+  sessions      Session[]
+  accounts      Account[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  @@unique([provider, providerAccountId])
+}
+
+model Child {
+  id            String   @id @default(cuid())
+  familyId      String
+  family        Family   @relation(fields: [familyId], references: [id])
+  name          String
+  birthDate     DateTime
+  gender        String?
+  photoUrl      String?
+  createdAt     DateTime @default(now())
+  dailyLogs     DailyLog[]
+  milestones    Milestone[]
+  growth        GrowthMeasurement[]
+  vaccinations  Vaccination[]
+  doctorVisits  DoctorVisit[]
+  reflections   DailyReflection[]
+  aiAnalyses    AIAnalysis[]
+}
+
+model DailyLog {
+  id        String    @id @default(cuid())
+  childId   String
+  child     Child     @relation(fields: [childId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  type      String
+  logDate   DateTime  @default(now())
+  startedAt DateTime?
+  endedAt   DateTime?
+  data      Json?
+  notes     String?
+  createdAt DateTime  @default(now())
+
+  @@index([childId, logDate])
+  @@index([childId, type])
+}
+
+model DailyReflection {
+  id         String   @id @default(cuid())
+  childId    String
+  child      Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  date       DateTime
+  mood       Int?
+  journal    String?
+  aiFeedback String?
+  createdAt  DateTime @default(now())
+
+  @@unique([childId, date, userId])
+}
+
+model Milestone {
+  id          String    @id @default(cuid())
+  childId     String
+  child       Child     @relation(fields: [childId], references: [id], onDelete: Cascade)
+  category    String
+  milestoneKey String
+  title       String
+  description String?
+  ageMonth    Int?
+  achievedAt  DateTime?
+  notes       String?
+  createdAt   DateTime  @default(now())
+
+  @@unique([childId, milestoneKey])
+}
+
+model GrowthMeasurement {
+  id                  String   @id @default(cuid())
+  childId             String
+  child               Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  date                DateTime
+  weightKg            Float?
+  heightCm            Float?
+  headCircumferenceCm Float?
+  notes               String?
+  createdAt           DateTime @default(now())
+
+  @@index([childId, date])
+}
+
+model Vaccination {
+  id              String    @id @default(cuid())
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id], onDelete: Cascade)
+  vaccineKey      String
+  vaccineName     String
+  doseNumber      Int       @default(1)
+  scheduledDate   DateTime?
+  administeredAt  DateTime?
+  notes           String?
+  createdAt       DateTime  @default(now())
+
+  @@unique([childId, vaccineKey, doseNumber])
+}
+
+model DoctorVisit {
+  id          String   @id @default(cuid())
+  childId     String
+  child       Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  date        DateTime
+  doctorName  String?
+  reason      String?
+  weightKg    Float?
+  heightCm    Float?
+  headCircumferenceCm Float?
+  notes       String?
+  createdAt   DateTime @default(now())
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  familyId   String
+  family     Family   @relation(fields: [familyId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  title      String
+  content    String
+  tags       String[] @default([])
+  linkedDate DateTime?
+  isFavorite Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([familyId])
+  @@index([userId])
+}
+
+model AIAnalysis {
+  id           String   @id @default(cuid())
+  childId      String
+  child        Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  analysisType String
+  periodStart  DateTime
+  periodEnd    DateTime
+  inputData    Json?
+  response     String
+  createdAt    DateTime @default(now())
+
+  @@index([childId, analysisType, periodStart])
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  familyId    String
+  family      Family   @relation(fields: [familyId], references: [id])
+  reportType  String
+  periodStart DateTime
+  periodEnd   DateTime
+  filePath    String?
+  format      String   @default("pdf")
+  createdAt   DateTime @default(now())
+}
+
+model KnowledgeItem {
+  id               String   @id @default(cuid())
+  source           String
+  category         String
+  ageRangeMinMonths Int?
+  ageRangeMaxMonths Int?
+  title            String
+  content          String
+  methodologyTags  String[] @default([])
+  language         String   @default("tr")
+  createdAt        DateTime @default(now())
+
+  @@index([category])
+  @@index([ageRangeMinMonths, ageRangeMaxMonths])
+}

@@ -1,0 +1,44 @@
+services:
+  ada-gunluk:
+    build: .
+    container_name: ada-gunluk
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - AUTH_SECRET=${AUTH_SECRET}
+      - AUTH_URL=${AUTH_URL:-http://localhost:3000}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - ada-network
+    depends_on:
+      - ada-db
+
+  ada-db:
+    image: postgres:17-alpine
+    container_name: ada-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-ada_gunluk}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ada-pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - ada-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  ada-pgdata:
+
+networks:
+  ada-network:
+    driver: bridge
