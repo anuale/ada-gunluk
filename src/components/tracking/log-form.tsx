@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   UtensilsCrossed,
   Moon,
@@ -11,15 +11,28 @@ import {
 import { Timer } from "./timer";
 import toast from "react-hot-toast";
 
+interface DailyLog {
+  id: string;
+  childId: string;
+  type: "feeding" | "sleep" | "diaper" | "ec";
+  logDate: string;
+  startedAt: string;
+  endedAt: string | null;
+  data: Record<string, unknown> | null;
+  notes: string | null;
+}
+
 interface LogFormProps {
   type: "feeding" | "sleep" | "diaper" | "ec";
   childId: string;
   onClose: () => void;
   onSaved: () => void;
+  existingLog?: DailyLog;
 }
 
-export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
-  const [notes, setNotes] = useState("");
+export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFormProps) {
+  const isEdit = !!existingLog;
+  const [notes, setNotes] = useState(existingLog?.notes || "");
   const [saving, setSaving] = useState(false);
 
   // Feeding state
@@ -59,6 +72,43 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
 
   const c = config[type];
   const Icon = c.icon;
+
+  useEffect(() => {
+    if (!existingLog) return;
+    const d = existingLog.data;
+    if (!d) return;
+
+    if (type === "feeding") {
+      const ft = (d.feedType as string) || "breast";
+      setFeedType(ft as "breast" | "formula" | "solids");
+      if (ft === "formula" || ft === "solids") {
+        setFeedAmount(String(d.amount ?? ""));
+      } else {
+        setLeftDuration((d.leftDuration as number) || 0);
+        setRightDuration((d.rightDuration as number) || 0);
+      }
+    } else if (type === "sleep") {
+      const dur = existingLog.startedAt && existingLog.endedAt
+        ? new Date(existingLog.endedAt).getTime() - new Date(existingLog.startedAt).getTime()
+        : 0;
+      setSleepDuration(dur);
+      setSleepQuality((d.quality as number) || 3);
+      setFallAsleep((d.fallAsleep as string) || "");
+      setSleepLocation((d.location as string) || "");
+    } else if (type === "diaper") {
+      setDiaperType((d.diaperType as "wet" | "dirty" | "both") || "wet");
+      setDiaperColor((d.color as string) || "");
+      setDiaperConsistency((d.consistency as string) || "");
+      if (existingLog.startedAt) {
+        const t = new Date(existingLog.startedAt);
+        setDiaperTime(`${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`);
+      }
+    } else if (type === "ec") {
+      setEcSuccess((d.success as boolean) !== false);
+      setEcCue((d.cue as string) || "");
+      setEcPosition((d.position as string) || "");
+    }
+  }, [existingLog, type]);
 
   const applyManualBreastTime = () => {
     const mins = parseInt(breastMinutes) || 0;
@@ -122,26 +172,33 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
     }
 
     try {
+      const isUpdate = !!existingLog;
+      const method = isUpdate ? "PUT" : "POST";
+      const payload: Record<string, unknown> = {
+        childId,
+        type,
+        logDate: existingLog?.logDate ?? new Date().toISOString(),
+        startedAt: startedAt || existingLog?.startedAt || new Date().toISOString(),
+        endedAt: endedAt !== undefined ? endedAt : existingLog?.endedAt ?? null,
+        data: logData,
+        notes: notes || null,
+      };
+      if (isUpdate) {
+        payload.id = existingLog!.id;
+      }
+
       const res = await fetch("/api/daily-logs", {
-        method: "POST",
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          childId,
-          type,
-          logDate: new Date().toISOString(),
-          startedAt: startedAt || new Date().toISOString(),
-          endedAt: endedAt || null,
-          data: logData,
-          notes: notes || null,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
-        toast.success("Kaydedildi");
+        toast.success(isUpdate ? "Güncellendi" : "Kaydedildi");
         onSaved();
         onClose();
       } else {
-        toast.error("Kayıt başarısız");
+        toast.error(isUpdate ? "Güncelleme başarısız" : "Kayıt başarısız");
       }
     } catch {
       toast.error("Bağlantı hatası");
@@ -513,7 +570,7 @@ export function LogForm({ type, childId, onClose, onSaved }: LogFormProps) {
             disabled={saving}
             className="w-full py-3.5 rounded-full bg-primary text-on-primary font-medium text-sm hover:bg-surface-tint transition-colors disabled:opacity-50"
           >
-            {saving ? "Kaydediliyor..." : "Kaydet"}
+            {saving ? (isEdit ? "Güncelleniyor..." : "Kaydediliyor...") : (isEdit ? "Güncelle" : "Kaydet")}
           </button>
         </div>
       </div>

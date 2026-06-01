@@ -68,6 +68,7 @@ function TimelinePageInner() {
   const [logs, setLogs] = useState<DailyLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [showLogForm, setShowLogForm] = useState(false);
+  const [editingLog, setEditingLog] = useState<DailyLog | null>(null);
   const [showFabMenu, setShowFabMenu] = useState(false);
   const [logType, setLogType] = useState<"feeding" | "sleep" | "diaper" | "ec">("feeding");
   const [showReflection, setShowReflection] = useState(false);
@@ -305,14 +306,24 @@ function TimelinePageInner() {
                 {dateLogs.map((log) => {
                   const Icon = getLogIcon(log.type);
                   const color = getLogColor(log.type);
+                  const isFeeding = log.type === "feeding";
                   return (
-                    <div key={log.id} className="bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant/10 flex items-start gap-3">
-                      <div className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0 mt-0.5`}>
+                    <div
+                      key={log.id}
+                      onClick={() => isFeeding && setEditingLog(log)}
+                      className={`bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant/10 flex items-start gap-3 ${isFeeding ? "cursor-pointer hover:bg-surface-container-low active:bg-surface-container-high transition-colors group" : ""}`}
+                    >
+                      <div className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0 mt-0.5 ${isFeeding ? "group-hover:scale-105 transition-transform" : ""}`}>
                         <Icon size={18} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <h3 className="text-sm font-medium text-on-surface">{getLogLabel(log.type)}</h3>
+                          {isFeeding && (
+                            <span className="text-[10px] text-primary/50 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                              düzelt
+                            </span>
+                          )}
                         </div>
                         {getLogDetail(log)}
                         {log.notes && <p className="text-xs text-on-surface-variant/60 mt-1 italic">&ldquo;{log.notes}&rdquo;</p>}
@@ -331,12 +342,25 @@ function TimelinePageInner() {
 
       <FAB onSelect={handleOpenLog} open={showFabMenu} onToggle={() => setShowFabMenu(!showFabMenu)} />
 
-      {showLogForm && childId && (
+      {showLogForm && childId && !editingLog && (
         <LogForm
           type={logType}
           childId={childId}
           onClose={() => setShowLogForm(false)}
           onSaved={handleSaved}
+        />
+      )}
+
+      {editingLog && childId && (
+        <LogForm
+          type={editingLog.type}
+          childId={childId}
+          existingLog={editingLog}
+          onClose={() => setEditingLog(null)}
+          onSaved={() => {
+            setEditingLog(null);
+            handleSaved();
+          }}
         />
       )}
 

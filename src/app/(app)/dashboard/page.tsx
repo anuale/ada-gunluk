@@ -57,18 +57,37 @@ export default function DashboardPage() {
   const lastFeeding = logs.find((l) => l.type === "feeding");
   const lastSleep = logs.find((l) => l.type === "sleep");
 
-  const getLogSummary = (log: DailyLog): string => {
+  const getLogSummaryDetail = (log: DailyLog): string => {
     const d = log.data;
     if (!d) return "";
     if (log.type === "feeding") {
       const ft = d.feedType as string;
-      if (ft === "breast") return `Anne Sütü • ${Math.floor(((d.leftDuration as number) || 0 + (d.rightDuration as number) || 0) / 60000)} dk`;
+      if (ft === "breast") {
+        const left = Math.floor(((d.leftDuration as number) || 0) / 60000);
+        const right = Math.floor(((d.rightDuration as number) || 0) / 60000);
+        const parts: string[] = [];
+        if (left > 0) parts.push(`Sol: ${left} dk`);
+        if (right > 0) parts.push(`Sağ: ${right} dk`);
+        return parts.length > 0 ? `Anne Sütü • ${parts.join(", ")}` : "Anne Sütü";
+      }
       if (ft === "formula") return `Formül • ${d.amount || "—"} ml`;
       return `Ek Gıda • ${d.amount || "—"}`;
     }
     if (log.type === "sleep" && log.startedAt && log.endedAt) {
       const dur = new Date(log.endedAt).getTime() - new Date(log.startedAt).getTime();
-      return formatDuration(dur);
+      const q = d.quality as number || 3;
+      const loc = d.location as string;
+      const locLabels: Record<string, string> = { crib: "Beşik", parents_bed: "Ebeveyn yatağı", stroller: "Bebek arabası", car_seat: "Araba koltuğu" };
+      const parts: string[] = [formatDuration(dur), "⭐".repeat(q)];
+      if (loc) parts.push(locLabels[loc] || loc);
+      return parts.join(" • ");
+    }
+    if (log.type === "diaper") {
+      const dt = d.diaperType as string;
+      return dt === "wet" ? "Islak" : dt === "dirty" ? "Kaka" : "Islak + Kaka";
+    }
+    if (log.type === "ec") {
+      return (d.success as boolean) ? "✅ Başarılı" : "❌ Kaçırma";
     }
     return "";
   };
@@ -169,7 +188,7 @@ export default function DashboardPage() {
                     bg="bg-feeding text-feeding-text"
                     icon={UtensilsCrossed}
                     title="Son Beslenme"
-                    detail={getLogSummary(lastFeeding)}
+                    detail={getLogSummaryDetail(lastFeeding)}
                     time={formatTimeAgo(new Date(lastFeeding.startedAt))}
                   />
                 )}
@@ -178,7 +197,7 @@ export default function DashboardPage() {
                     bg="bg-sleep text-sleep-text"
                     icon={Moon}
                     title="Son Uyku"
-                    detail={getLogSummary(lastSleep)}
+                    detail={getLogSummaryDetail(lastSleep)}
                     time={formatTimeAgo(new Date(lastSleep.startedAt))}
                   />
                 )}
@@ -186,6 +205,33 @@ export default function DashboardPage() {
                   <p className="text-sm text-center text-on-surface-variant py-3">
                     Beslenme veya uyku kaydı bulunamadı
                   </p>
+                )}
+
+                {logs.length > 0 && (
+                  <div className="pt-3 border-t border-outline-variant/10 mt-3">
+                    <h4 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
+                      Tüm Kayıtlar
+                    </h4>
+                    <div className="space-y-1.5">
+                      {logs.map((log) => (
+                        <div key={log.id} className="flex items-center gap-2 text-xs text-on-surface-variant py-1">
+                          {log.type === "feeding" ? (
+                            <UtensilsCrossed size={12} className="text-feeding-text shrink-0" />
+                          ) : log.type === "sleep" ? (
+                            <Moon size={12} className="text-sleep-text shrink-0" />
+                          ) : log.type === "diaper" ? (
+                            <Baby size={12} className="text-diaper-text shrink-0" />
+                          ) : (
+                            <Droplets size={12} className="text-ec-text shrink-0" />
+                          )}
+                          <span className="truncate">{getLogSummaryDetail(log)}</span>
+                          <span className="ml-auto shrink-0 text-on-surface-variant/50">
+                            {new Date(log.startedAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             )}
@@ -302,7 +348,7 @@ function SummaryItem({
   bg: string;
   icon: React.ElementType;
   title: string;
-  detail: string;
+  detail: React.ReactNode;
   time: string;
 }) {
   return (
