@@ -5,7 +5,7 @@ WORKDIR /app
 ENV NODE_ENV=development
 RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN NODE_ENV=development npm ci
 COPY . .
 RUN npx prisma generate
 RUN npm run build

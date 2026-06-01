@@ -13,7 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { LogForm } from "@/components/tracking/log-form";
-import { formatDuration } from "@/components/tracking/timer";
+import { formatDuration, formatTimeAgo } from "@/components/tracking/timer";
 import { EndOfDayReflection } from "@/components/tracking/reflection";
 import toast from "react-hot-toast";
 
@@ -68,7 +68,6 @@ function TimelinePageInner() {
   const [logs, setLogs] = useState<DailyLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [showLogForm, setShowLogForm] = useState(false);
-  const [editingLog, setEditingLog] = useState<DailyLog | null>(null);
   const [showFabMenu, setShowFabMenu] = useState(false);
   const [logType, setLogType] = useState<"feeding" | "sleep" | "diaper" | "ec">("feeding");
   const [showReflection, setShowReflection] = useState(false);
@@ -121,7 +120,6 @@ function TimelinePageInner() {
   const handleOpenLog = (type: "feeding" | "sleep" | "diaper" | "ec") => {
     setLogType(type);
     setShowLogForm(true);
-    setEditingLog(null);
     setShowFabMenu(false);
   };
 
@@ -159,92 +157,45 @@ function TimelinePageInner() {
     }
   };
 
-  const getLogDetail = (log: DailyLog) => {
+  const getLogSummary = (log: DailyLog): string => {
     const d = log.data;
-    if (!d) return null;
+    if (!d) return log.notes || "";
 
     switch (log.type) {
       case "feeding": {
         const ft = d.feedType as string;
         if (ft === "breast") {
-          return (
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-1">
-              <span>Anne Sütü</span>
-              {(d.leftDuration as number) > 0 && <span>Sol: {Math.floor((d.leftDuration as number) / 60000)} dk</span>}
-              {(d.rightDuration as number) > 0 && <span>Sağ: {Math.floor((d.rightDuration as number) / 60000)} dk</span>}
-            </div>
-          );
+          const l = (d.leftDuration as number) || 0;
+          const r = (d.rightDuration as number) || 0;
+          return `Anne Sütü • ${Math.floor((l + r) / 60000)} dk`;
         }
-        if (ft === "formula") {
-          return (
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-1">
-              <span>Formül • {(d.amount as string) || "—"} ml</span>
-            </div>
-          );
-        }
-        return (
-          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-1">
-            <span>Ek Gıda • {(d.amount as string) || "—"}</span>
-          </div>
-        );
+        if (ft === "formula") return `Formül • ${d.amount || "—"} ml`;
+        return `Ek Gıda • ${d.amount || "—"}`;
       }
       case "sleep": {
-        const dur = log.startedAt && log.endedAt ? new Date(log.endedAt).getTime() - new Date(log.startedAt).getTime() : 0;
-        const q = d.quality as number || 3;
-        const loc = d.location as string;
-        const fa = d.fallAsleep as string;
-        const locLabels: Record<string, string> = { crib: "Beşik", parents_bed: "Ebeveyn yatağı", stroller: "Bebek arabası", car_seat: "Araba koltuğu" };
-        const faLabels: Record<string, string> = { self: "Kendi kendine", breastfeeding: "Emzirerek", rocking: "Sallanarak", stroller: "Arabada", other: "Diğer" };
-        return (
-          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-1">
-            {dur > 0 && <span>{formatDuration(dur)}</span>}
-            <span>{"⭐".repeat(q)}</span>
-            {loc && <span>{locLabels[loc] || loc}</span>}
-            {fa && <span>{faLabels[fa] || fa}</span>}
-          </div>
-        );
+        if (log.startedAt && log.endedAt) {
+          const duration = new Date(log.endedAt).getTime() - new Date(log.startedAt).getTime();
+          return `${formatDuration(duration)} • Kalite: ${"⭐".repeat((d.quality as number) || 3)}`;
+        }
+        return formatDuration(
+          (d.quality ? 0 : 0)
+        ) || "—";
       }
       case "diaper": {
         const dt = d.diaperType as string;
-        const col = d.color as string;
-        const con = d.consistency as string;
-        const colLabels: Record<string, string> = { yellow: "Sarı", green: "Yeşil", brown: "Kahverengi", dark_green: "Koyu Yeşil", mustard: "Hardal" };
-        const conLabels: Record<string, string> = { liquid: "Sıvı", soft: "Yumuşak", formed: "Şekilli", hard: "Sert", seedy: "Tanecikli" };
-        return (
-          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-1">
-            <span>{dt === "wet" ? "Islak" : dt === "dirty" ? "Kaka" : "Islak + Kaka"}</span>
-            {col && <span>Renk: {colLabels[col] || col}</span>}
-            {con && <span>Kıvam: {conLabels[con] || con}</span>}
-          </div>
-        );
+        return dt === "wet" ? "Islak" : dt === "dirty" ? "Kaka" : "Islak + Kaka";
       }
       case "ec": {
-        const cue = d.cue as string;
-        const pos = d.position as string;
-        const posLabels: Record<string, string> = { sink: "Lavabo", toilet: "Klozet", adapter: "Tuvalet adaptörü", potty: "Lazımlık", outside: "Dışarıda" };
-        return (
-          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-1">
-            <span>{(d.success as boolean) ? "✅ Başarılı" : "❌ Kaçırma"}</span>
-            {cue && <span>İşaret: {cue}</span>}
-            {pos && <span>{posLabels[pos] || pos}</span>}
-          </div>
-        );
+        return (d.success as boolean) ? "✅ Başarılı" : "❌ Kaçırma";
       }
-      default: return null;
+      default: return "";
     }
   };
-
-  const groupedLogs = logs.reduce((acc, log) => {
-    const date = new Date(log.startedAt).toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-    if (!acc[date]) acc[date] = [];
-    acc[date].push(log);
-    return acc;
-  }, {} as Record<string, DailyLog[]>);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-2xl text-primary">Günlük <span className="text-[10px] text-on-surface-variant/30 font-sans align-top">v2</span></h1>
+        <h1 className="font-serif text-2xl text-primary">Günlük</h1>
         <button
           onClick={() => setShowReflection(true)}
           className="flex items-center gap-1.5 text-sm font-medium text-primary hover:bg-primary-container/30 px-3 py-1.5 rounded-full transition-colors"
@@ -299,72 +250,59 @@ function TimelinePageInner() {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {Object.entries(groupedLogs).map(([date, dateLogs]) => (
-            <div key={date}>
-              <h3 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-1 mb-2">{date}</h3>
-              <div className="space-y-2">
-                {dateLogs.map((log) => {
-                  const Icon = getLogIcon(log.type);
-                  const color = getLogColor(log.type);
-                  const isFeeding = log.type === "feeding";
-                  return (
-                    <div
-                      key={log.id}
-                      onClick={() => isFeeding && setEditingLog(log)}
-                      className={`bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant/10 flex items-start gap-3 ${isFeeding ? "cursor-pointer hover:bg-surface-container-low active:bg-surface-container-high transition-colors" : ""}`}
-                    >
-                      <div className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0 mt-0.5`}>
-                        <Icon size={18} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-medium text-on-surface">{getLogLabel(log.type)}</h3>
-                          {isFeeding && (
-                            <span className="text-[10px] text-primary/60 font-medium inline-flex items-center gap-0.5">
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                              düzelt
-                            </span>
-                          )}
-                        </div>
-                        {getLogDetail(log)}
-                        {log.notes && <p className="text-xs text-on-surface-variant/60 mt-1 italic">&ldquo;{log.notes}&rdquo;</p>}
-                      </div>
-                      <span className="text-xs text-on-surface-variant/50 shrink-0">
-                        {new Date(log.startedAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
-                      </span>
-                    </div>
-                  );
-                })}
+        <div className="space-y-2">
+          {logs.map((log) => {
+            const Icon = getLogIcon(log.type);
+            const color = getLogColor(log.type);
+
+            return (
+              <div
+                key={log.id}
+                className="bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant/10 flex items-start gap-3"
+              >
+                <div className={`w-10 h-10 rounded-full ${color} flex items-center justify-center shrink-0 mt-0.5`}>
+                  <Icon size={18} />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-medium text-on-surface">
+                      {getLogLabel(log.type)}
+                    </h3>
+                    <span className="text-xs text-on-surface-variant">
+                      {formatTimeAgo(new Date(log.startedAt))}
+                    </span>
+                  </div>
+                  <p className="text-sm text-on-surface-variant mt-0.5">
+                    {getLogSummary(log)}
+                  </p>
+                  {log.notes && (
+                    <p className="text-xs text-on-surface-variant/70 mt-1 italic">
+                      &ldquo;{log.notes}&rdquo;
+                    </p>
+                  )}
+                </div>
+
+                <span className="text-xs text-on-surface-variant/50 shrink-0">
+                  {new Date(log.startedAt).toLocaleTimeString("tr-TR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       <FAB onSelect={handleOpenLog} open={showFabMenu} onToggle={() => setShowFabMenu(!showFabMenu)} />
 
-      {showLogForm && childId && !editingLog && (
+      {showLogForm && childId && (
         <LogForm
-          key="new"
           type={logType}
           childId={childId}
           onClose={() => setShowLogForm(false)}
           onSaved={handleSaved}
-        />
-      )}
-
-      {editingLog && childId && (
-        <LogForm
-          key={editingLog.id}
-          type={editingLog.type}
-          childId={childId}
-          existingLog={editingLog}
-          onClose={() => setEditingLog(null)}
-          onSaved={() => {
-            setEditingLog(null);
-            handleSaved();
-          }}
         />
       )}
 
