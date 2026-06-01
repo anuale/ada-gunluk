@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   UtensilsCrossed,
@@ -29,6 +29,37 @@ interface DailyLog {
 }
 
 export default function TimelinePage() {
+  return (
+    <Suspense fallback={<TimelineSkeleton />}>
+      <TimelinePageInner />
+    </Suspense>
+  );
+}
+
+function TimelineSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="font-serif text-2xl text-primary animate-pulse bg-surface-container-highest rounded h-8 w-24" />
+      </div>
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-surface rounded-2xl p-5 animate-pulse">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-surface-container-highest" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-surface-container-highest rounded w-24" />
+                <div className="h-3 bg-surface-container-highest rounded w-40" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TimelinePageInner() {
   const searchParams = useSearchParams();
   const initialLogType = searchParams.get("log") as "feeding" | "sleep" | "diaper" | "ec" | null;
 

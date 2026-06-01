@@ -11,6 +11,7 @@ import {
   Plus,
   X,
   Circle,
+  UserPlus,
 } from "lucide-react";
 import {
   LineChart,
@@ -21,6 +22,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import Link from "next/link";
 import toast from "react-hot-toast";
 
 type Tab = "milestones" | "growth" | "vaccines" | "teeth" | "doctor";
@@ -223,7 +225,15 @@ export default function DevelopmentPage() {
       <div className="space-y-6">
         <h1 className="font-serif text-2xl text-primary">Gelişim</h1>
         <div className="bg-surface rounded-2xl p-12 text-center shadow-sm border border-outline-variant/10">
-          <p className="text-on-surface-variant">Gelişim takibi için önce bir çocuk profili ekleyin.</p>
+          <UserPlus size={32} className="text-on-surface-variant/40 mx-auto mb-3" />
+          <p className="text-on-surface-variant mb-4">Gelişim takibi için önce bir çocuk profili ekleyin.</p>
+          <Link
+            href="/children/new"
+            className="inline-flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-full text-sm font-medium hover:bg-surface-tint transition-colors"
+          >
+            <Plus size={16} />
+            Çocuk Ekle
+          </Link>
         </div>
       </div>
     );
