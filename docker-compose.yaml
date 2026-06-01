@@ -20,9 +20,9 @@ services:
     image: postgres:17-alpine
     container_name: ada-db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: ada_gunluk
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "ada_gunluk"
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
