@@ -91,9 +91,8 @@ function TimelinePageInner() {
   }, []);
 
   const fetchLogs = useCallback(async (cid: string) => {
-    const today = new Date().toISOString().split("T")[0];
     try {
-      const res = await fetch(`/api/daily-logs?childId=${cid}&date=${today}`);
+      const res = await fetch(`/api/daily-logs?childId=${cid}`);
       if (res.ok) {
         const data = await res.json();
         setLogs(data);
