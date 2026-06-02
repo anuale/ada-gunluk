@@ -3,6 +3,8 @@ services:
     image: ghcr.io/anuale/ada-gunluk:latest
     pull_policy: always
     container_name: ada-gunluk
+    expose:
+      - "3000"
     ports:
       - "3100:3000"
     environment:
@@ -13,9 +15,15 @@ services:
     restart: unless-stopped
     networks:
       - ada-network
+      - coolify
     depends_on:
       ada-db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/dashboard || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
   ada-db:
     image: postgres:17-alpine
@@ -43,3 +51,5 @@ volumes:
 networks:
   ada-network:
     driver: bridge
+  coolify:
+    external: true
