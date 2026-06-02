@@ -104,6 +104,7 @@ export default function DevelopmentPage() {
   const [growthWeight, setGrowthWeight] = useState("");
   const [growthHeight, setGrowthHeight] = useState("");
   const [growthHead, setGrowthHead] = useState("");
+  const [editingGrowthId, setEditingGrowthId] = useState<string | null>(null);
 
   // Doctor form
   const [showDoctorForm, setShowDoctorForm] = useState(false);
@@ -111,6 +112,11 @@ export default function DevelopmentPage() {
   const [doctorName, setDoctorName] = useState("");
   const [doctorReason, setDoctorReason] = useState("");
   const [doctorNotes, setDoctorNotes] = useState("");
+
+  // Vaccine state
+  const [newVaccineName, setNewVaccineName] = useState("");
+  const [newVaccineDate, setNewVaccineDate] = useState(new Date().toISOString().split("T")[0]);
+  const [showVaccineForm, setShowVaccineForm] = useState(false);
 
   const fetchChild = useCallback(async () => {
     const r = await fetch("/api/children");
@@ -190,8 +196,24 @@ export default function DevelopmentPage() {
     if (res.ok) {
       toast.success("Ölçüm kaydedildi");
       setShowGrowthForm(false);
+      setEditingGrowthId(null);
       fetchData(child);
     }
+  };
+
+  const deleteGrowth = async (id: string) => {
+    if (!child || !confirm("Bu ölçümü silmek istediğinize emin misiniz?")) return;
+    const res = await fetch(`/api/growth?id=${id}`, { method: "DELETE" });
+    if (res.ok) { toast.success("Ölçüm silindi"); fetchData(child); }
+  };
+
+  const editGrowth = (m: Measurement) => {
+    setGrowthDate(new Date(m.date).toISOString().split("T")[0]);
+    setGrowthWeight(m.weightKg ? String(m.weightKg) : "");
+    setGrowthHeight(m.heightCm ? String(m.heightCm) : "");
+    setGrowthHead(m.headCircumferenceCm ? String(m.headCircumferenceCm) : "");
+    setEditingGrowthId(m.id);
+    setShowGrowthForm(true);
   };
 
   const markVaccine = async (id: string) => {
@@ -203,8 +225,28 @@ export default function DevelopmentPage() {
     if (res.ok) {
       const updated = await res.json();
       setVaccinations((prev) => prev.map((v) => (v.id === updated.id ? updated : v)));
-      toast.success("Aşı tamamlandı olarak işaretlendi");
+      toast.success("Aşı durumu güncellendi");
     }
+  };
+
+  const updateVaccineDate = async (id: string, dateStr: string) => {
+    if (!child) return;
+    await fetch("/api/vaccinations", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, administeredAt: dateStr ? new Date(dateStr).toISOString() : null }) });
+    fetchData(child);
+    toast.success("Aşı tarihi güncellendi");
+  };
+
+  const deleteVaccine = async (id: string) => {
+    if (!child || !confirm("Bu aşıyı silmek istediğinize emin misiniz?")) return;
+    await fetch(`/api/vaccinations?id=${id}`, { method: "DELETE" });
+    fetchData(child);
+    toast.success("Aşı silindi");
+  };
+
+  const addCustomVaccine = async () => {
+    if (!child || !newVaccineName.trim()) return;
+    const res = await fetch("/api/vaccinations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ childId: child.id, vaccineName: newVaccineName, scheduledDate: newVaccineDate ? new Date(newVaccineDate) : null }) });
+    if (res.ok) { toast.success("Aşı eklendi"); setNewVaccineName(""); setShowVaccineForm(false); fetchData(child); }
   };
 
   const saveDoctorVisit = async () => {
@@ -249,6 +291,18 @@ export default function DevelopmentPage() {
     if (!newNote || !child) return;
     const res = await fetch("/api/daily-logs", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: obs.id, notes: newNote }) });
     if (res.ok) { toast.success("Gözlem güncellendi"); fetchData(child); }
+  };
+
+  const fmtAgeMonth = (m: number) => {
+    const months = Math.floor(m);
+    if (m < 1) {
+      const week = Math.round(m * 4);
+      return `${months + 1}. Ay / ${week}. Hafta`;
+    }
+    const fractionalWeeks = Math.round((m - months) * 4);
+    if (fractionalWeeks > 0) return `${months}. Ay / ${fractionalWeeks}. Hafta`;
+    if (months % 12 === 0 && months > 0) return `${months / 12} Yaş`;
+    return `${months}. Ay`;
   };
 
   if (!child) {
@@ -402,7 +456,7 @@ export default function DevelopmentPage() {
                       <div className="flex items-center gap-2">
                         <h4 className="text-sm font-medium text-on-surface">{m.title}</h4>
                         <span className="text-[10px] text-on-surface-variant bg-surface-container-low px-1.5 py-0.5 rounded-full">
-                          {m.ageMonth < 1 ? `${Math.round(m.ageMonth * 4)}. hafta` : `${m.ageMonth}. ay`}
+                          {fmtAgeMonth(m.ageMonth)}
                         </span>
                       </div>
                       <p className="text-xs text-on-surface-variant mt-0.5">{m.description}</p>
@@ -503,17 +557,31 @@ export default function DevelopmentPage() {
                 </ResponsiveContainer>
               </div>
 
-              {/* Latest measurements */}
               <div className="bg-surface rounded-2xl p-5 shadow-sm border border-outline-variant/10">
-                <h3 className="font-serif text-lg text-on-surface mb-3">Son Ölçümler</h3>
-                <div className="space-y-1">
-                  {measurements.slice(0, 5).map((m) => (
-                    <div key={m.id} className="flex items-center justify-between py-2 border-b border-outline-variant/10 last:border-0">
-                      <span className="text-sm text-on-surface-variant">{new Date(m.date).toLocaleDateString("tr-TR")}</span>
-                      <div className="flex gap-4 text-sm">
-                        {m.weightKg && <span className="text-on-surface">{m.weightKg} kg</span>}
-                        {m.heightCm && <span className="text-on-surface">{m.heightCm} cm</span>}
-                        {m.headCircumferenceCm && <span className="text-on-surface-variant">{m.headCircumferenceCm} cm (baş)</span>}
+                <h3 className="font-serif text-lg text-on-surface mb-3">Tüm Ölçümler</h3>
+                <div className="space-y-3">
+                  {Object.entries(
+                    measurements.reduce((acc, m) => {
+                      const d = new Date(m.date).toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+                      if (!acc[d]) acc[d] = []; acc[d].push(m); return acc;
+                    }, {} as Record<string, Measurement[]>)
+                  ).map(([date, items]) => (
+                    <div key={date}>
+                      <h4 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-1 mb-1">{date}</h4>
+                      <div className="space-y-1">
+                        {items.map((m) => (
+                          <div key={m.id} className="flex items-center justify-between py-2 border-b border-outline-variant/10 last:border-0">
+                            <div className="flex gap-3 text-sm">
+                              {m.weightKg && <span className="text-on-surface">{m.weightKg} kg</span>}
+                              {m.heightCm && <span className="text-on-surface">{m.heightCm} cm</span>}
+                              {m.headCircumferenceCm && <span className="text-on-surface-variant">{m.headCircumferenceCm} cm (baş)</span>}
+                            </div>
+                            <div className="flex gap-0.5">
+                              <button onClick={() => editGrowth(m)} className="w-6 h-6 rounded-full flex items-center justify-center text-on-surface-variant/40 hover:text-primary"><Pencil size={12} /></button>
+                              <button onClick={() => deleteGrowth(m.id)} className="w-6 h-6 rounded-full flex items-center justify-center text-on-surface-variant/40 hover:text-error"><Trash2 size={12} /></button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
@@ -527,50 +595,55 @@ export default function DevelopmentPage() {
       {/* VACCINES TAB */}
       {activeTab === "vaccines" && (
         <div className="space-y-3">
+          <div className="bg-surface rounded-2xl p-5 shadow-sm border border-outline-variant/10">
+            <h3 className="font-serif text-lg text-on-surface mb-1">T.C. Sağlık Bakanlığı Aşı Takvimi</h3>
+            <p className="text-xs text-on-surface-variant">Ücretsiz, Aile Sağlığı Merkezlerinde uygulanır</p>
+          </div>
+
+          <button onClick={() => setShowVaccineForm(!showVaccineForm)} className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-full text-sm font-medium hover:bg-surface-tint">
+            <Plus size={16} /> Aşı Ekle
+          </button>
+
+          {showVaccineForm && (
+            <div className="bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant/10 space-y-3">
+              <input type="text" value={newVaccineName} onChange={(e) => setNewVaccineName(e.target.value)}
+                placeholder="Aşı adı" className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-lowest text-sm" />
+              <input type="date" value={newVaccineDate} onChange={(e) => setNewVaccineDate(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-lowest text-sm" />
+              <button onClick={addCustomVaccine} className="w-full py-2.5 rounded-full bg-primary text-on-primary text-sm font-medium">Ekle</button>
+            </div>
+          )}
+
           {vaccinations.length === 0 ? (
             <div className="bg-surface rounded-2xl p-12 text-center shadow-sm border border-outline-variant/10">
               <Syringe size={32} className="text-on-surface-variant/40 mx-auto mb-3" />
-              <p className="text-on-surface-variant text-sm">Gelişim verilerini yükledikten sonra aşı takvimi burada görünecek.</p>
+              <p className="text-on-surface-variant text-sm">Henüz aşı kaydı yok.</p>
             </div>
           ) : (
-            <>
-              <div className="bg-surface rounded-2xl p-5 shadow-sm border border-outline-variant/10">
-                <h3 className="font-serif text-lg text-on-surface mb-1">T.C. Sağlık Bakanlığı Aşı Takvimi</h3>
-                <p className="text-xs text-on-surface-variant">Ücretsiz, Aile Sağlığı Merkezlerinde uygulanır</p>
-              </div>
-              {vaccinations.map((v) => {
-                const isDone = !!v.administeredAt;
-                const scheduledDate = new Date(v.scheduledDate);
-                const isOverdue = !isDone && scheduledDate < new Date();
-                return (
-                  <div
-                    key={v.id}
-                    className={`bg-surface rounded-2xl p-4 shadow-sm border transition-all flex items-center gap-3 ${
-                      isDone ? "border-primary/30 bg-primary-container/10" : isOverdue ? "border-error/30" : "border-outline-variant/10"
-                    }`}
-                  >
-                    <button
-                      onClick={() => !isDone && markVaccine(v.id)}
-                      className={`w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                        isDone ? "bg-primary border-primary text-on-primary" : "border-outline-variant"
-                      } ${!isDone ? "cursor-pointer hover:border-primary" : ""}`}
-                    >
-                      {isDone && <Check size={14} />}
-                    </button>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-on-surface">
-                        {v.vaccineName} {v.doseNumber > 1 ? `(${v.doseNumber}. Doz)` : ""}
-                      </p>
-                      <p className="text-xs text-on-surface-variant">
-                        {v.administeredAt
-                          ? `✓ ${new Date(v.administeredAt).toLocaleDateString("tr-TR")}`
-                          : `Planlanan: ${scheduledDate.toLocaleDateString("tr-TR")}${isOverdue ? " ⚠️ Gecikti" : ""}`}
-                      </p>
+            vaccinations.map((v) => {
+              const isDone = !!v.administeredAt;
+              const scheduledDate = new Date(v.scheduledDate);
+              const isOverdue = !isDone && scheduledDate < new Date();
+              return (
+                <div key={v.id} className={`bg-surface rounded-2xl p-4 shadow-sm border transition-all flex items-center gap-3 ${isDone ? "border-primary/30 bg-primary-container/10" : isOverdue ? "border-error/30" : "border-outline-variant/10"}`}>
+                  <button onClick={() => markVaccine(v.id)}
+                    className={`w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 ${isDone ? "bg-primary border-primary text-on-primary" : "border-outline-variant"} cursor-pointer hover:border-primary`}>
+                    {isDone && <Check size={14} />}
+                  </button>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-on-surface">{v.vaccineName} {v.doseNumber > 1 ? `(${v.doseNumber}. Doz)` : ""}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <input type="date"
+                        value={v.administeredAt ? new Date(v.administeredAt).toISOString().split("T")[0] : ""}
+                        onChange={(e) => updateVaccineDate(v.id, e.target.value)}
+                        className="text-xs px-2 py-1 rounded-lg border border-outline-variant bg-surface-container-lowest" />
+                      {!v.administeredAt && <span className="text-xs text-on-surface-variant">Plan: {scheduledDate.toLocaleDateString("tr-TR")}{isOverdue ? " ⚠️" : ""}</span>}
                     </div>
                   </div>
-                );
-              })}
-            </>
+                  <button onClick={() => deleteVaccine(v.id)} className="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant/30 hover:text-error hover:bg-error-container/10"><Trash2 size={13} /></button>
+                </div>
+              );
+            })
           )}
         </div>
       )}
