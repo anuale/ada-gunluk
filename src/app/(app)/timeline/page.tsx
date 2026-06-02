@@ -12,6 +12,7 @@ import {
   Plus,
   Sparkles,
   Pencil,
+  Trash2,
 } from "lucide-react";
 import { LogForm } from "@/components/tracking/log-form";
 import { formatDuration } from "@/components/tracking/timer";
@@ -301,7 +302,22 @@ function TimelinePageInner() {
                 {dateLogs.map((log) => {
                   const Icon = getLogIcon(log.type);
                   const color = getLogColor(log.type);
-                  return (
+  const handleDelete = async (logId: string) => {
+    if (!confirm("Bu kaydı silmek istediğinize emin misiniz?")) return;
+    try {
+      const res = await fetch(`/api/daily-logs?id=${logId}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Kayıt silindi");
+        setLogs((prev) => prev.filter((l) => l.id !== logId));
+      } else {
+        toast.error("Silme başarısız");
+      }
+    } catch {
+      toast.error("Bağlantı hatası");
+    }
+  };
+
+  return (
                     <div
                       key={log.id}
                       className="bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant/10 flex items-start gap-3"
@@ -319,16 +335,24 @@ function TimelinePageInner() {
                         )}
                       </div>
                       <div className="flex flex-col items-end gap-2 shrink-0">
-                        <button
-                          onClick={() => {
-                            setLogType(log.type);
-                            setEditingLog(log);
-                            setShowLogForm(true);
-                          }}
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant/40 hover:text-primary hover:bg-surface-container-low transition-colors"
-                        >
-                          <Pencil size={13} />
-                        </button>
+                        <div className="flex gap-0.5">
+                          <button
+                            onClick={() => {
+                              setLogType(log.type);
+                              setEditingLog(log);
+                              setShowLogForm(true);
+                            }}
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant/40 hover:text-primary hover:bg-surface-container-low transition-colors"
+                          >
+                            <Pencil size={13} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(log.id)}
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant/40 hover:text-error hover:bg-error-container/20 transition-colors"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
                         <span className="text-xs text-on-surface-variant/50">
                           {new Date(log.startedAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
                         </span>
