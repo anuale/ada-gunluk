@@ -34,6 +34,9 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
   const isEdit = !!existingLog;
   const [notes, setNotes] = useState(existingLog?.notes || "");
   const [saving, setSaving] = useState(false);
+  const [logDate, setLogDate] = useState(
+    existingLog?.logDate ? new Date(existingLog.logDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]
+  );
 
   // Feeding state
   const [feedType, setFeedType] = useState<"breast" | "formula" | "solids">("breast");
@@ -76,38 +79,42 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
   useEffect(() => {
     if (!existingLog) return;
     const d = existingLog.data;
-    if (!d) return;
-
-    if (type === "feeding") {
-      const ft = (d.feedType as string) || "breast";
-      setFeedType(ft as "breast" | "formula" | "solids");
-      if (ft === "formula" || ft === "solids") {
-        setFeedAmount(String(d.amount ?? ""));
-      } else {
-        setLeftDuration((d.leftDuration as number) || 0);
-        setRightDuration((d.rightDuration as number) || 0);
+    if (d) {
+      if (type === "feeding") {
+        const ft = (d.feedType as string) || "breast";
+        setFeedType(ft as "breast" | "formula" | "solids");
+        if (ft === "formula" || ft === "solids") {
+          setFeedAmount(String(d.amount ?? ""));
+        } else {
+          setLeftDuration((d.leftDuration as number) || 0);
+          setRightDuration((d.rightDuration as number) || 0);
+        }
+      } else if (type === "sleep") {
+        const dur = existingLog.startedAt && existingLog.endedAt
+          ? new Date(existingLog.endedAt).getTime() - new Date(existingLog.startedAt).getTime()
+          : 0;
+        setSleepDuration(dur);
+        setSleepQuality((d.quality as number) || 3);
+        setFallAsleep((d.fallAsleep as string) || "");
+        setSleepLocation((d.location as string) || "");
+      } else if (type === "diaper") {
+        setDiaperType((d.diaperType as "wet" | "dirty" | "both") || "wet");
+        setDiaperColor((d.color as string) || "");
+        setDiaperConsistency((d.consistency as string) || "");
+        if (existingLog.startedAt) {
+          const t = new Date(existingLog.startedAt);
+          setDiaperTime(`${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`);
+        }
+      } else if (type === "ec") {
+        setEcSuccess((d.success as boolean) !== false);
+        setEcCue((d.cue as string) || "");
+        setEcPosition((d.position as string) || "");
       }
-    } else if (type === "sleep") {
-      const dur = existingLog.startedAt && existingLog.endedAt
-        ? new Date(existingLog.endedAt).getTime() - new Date(existingLog.startedAt).getTime()
-        : 0;
-      setSleepDuration(dur);
-      setSleepQuality((d.quality as number) || 3);
-      setFallAsleep((d.fallAsleep as string) || "");
-      setSleepLocation((d.location as string) || "");
-    } else if (type === "diaper") {
-      setDiaperType((d.diaperType as "wet" | "dirty" | "both") || "wet");
-      setDiaperColor((d.color as string) || "");
-      setDiaperConsistency((d.consistency as string) || "");
-      if (existingLog.startedAt) {
-        const t = new Date(existingLog.startedAt);
-        setDiaperTime(`${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`);
-      }
-    } else if (type === "ec") {
-      setEcSuccess((d.success as boolean) !== false);
-      setEcCue((d.cue as string) || "");
-      setEcPosition((d.position as string) || "");
     }
+    const dateStr = existingLog.logDate
+      ? new Date(existingLog.logDate).toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0];
+    setLogDate(dateStr);
   }, [existingLog, type]);
 
   const applyManualBreastTime = () => {
@@ -146,7 +153,7 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
         rightDuration,
       };
     } else if (type === "sleep") {
-      const now = new Date();
+      const now = new Date(`${logDate}T${new Date().toTimeString().slice(0, 8)}`);
       endedAt = now.toISOString();
       startedAt = new Date(now.getTime() - sleepDuration).toISOString();
       logData = {
@@ -155,8 +162,7 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
         location: sleepLocation || null,
       };
     } else if (type === "diaper") {
-      const today = new Date().toISOString().split("T")[0];
-      const occurrenceTime = new Date(`${today}T${diaperTime}:00`).toISOString();
+      const occurrenceTime = new Date(`${logDate}T${diaperTime}:00`).toISOString();
       startedAt = occurrenceTime;
       logData = {
         diaperType,
@@ -177,8 +183,8 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
       const payload: Record<string, unknown> = {
         childId,
         type,
-        logDate: existingLog?.logDate ?? new Date().toISOString(),
-        startedAt: startedAt || existingLog?.startedAt || new Date().toISOString(),
+        logDate: new Date(`${logDate}T12:00:00`).toISOString(),
+        startedAt: startedAt || existingLog?.startedAt || new Date(`${logDate}T${new Date().toTimeString().slice(0, 8)}`).toISOString(),
         endedAt: endedAt !== undefined ? endedAt : existingLog?.endedAt ?? null,
         data: logData,
         notes: notes || null,
@@ -226,6 +232,16 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
         </div>
 
         <div className="p-4 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-on-surface mb-1.5">Tarih</label>
+            <input
+              type="date"
+              value={logDate}
+              onChange={(e) => setLogDate(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+            />
+          </div>
+
           {type === "feeding" && (
             <>
               <div className="flex gap-2">
