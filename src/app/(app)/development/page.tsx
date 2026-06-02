@@ -118,6 +118,11 @@ export default function DevelopmentPage() {
   const [newVaccineDate, setNewVaccineDate] = useState(new Date().toISOString().split("T")[0]);
   const [showVaccineForm, setShowVaccineForm] = useState(false);
 
+  // Teeth state
+  const [teethLogs, setTeethLogs] = useState<DailyLog[]>([]);
+  const [newToothName, setNewToothName] = useState("");
+  const [newToothDate, setNewToothDate] = useState(new Date().toISOString().split("T")[0]);
+
   const fetchChild = useCallback(async () => {
     const r = await fetch("/api/children");
     const d = await r.json();
@@ -130,18 +135,19 @@ export default function DevelopmentPage() {
   }, []);
 
   const fetchData = useCallback(async (c: Child) => {
-    const [mRes, gRes, vRes, dRes, oRes] = await Promise.all([
+    const [mRes, gRes, vRes, dRes, oRes, tRes] = await Promise.all([
       fetch(`/api/milestones?childId=${c.id}`),
       fetch(`/api/growth?childId=${c.id}`),
       fetch(`/api/vaccinations?childId=${c.id}`),
       fetch(`/api/doctor-visits?childId=${c.id}`),
-      fetch(`/api/daily-logs?childId=${c.id}&type=development`),
+      fetch(`/api/daily-logs?childId=${c.id}&type=teeth`),
     ]);
     setMilestones(await mRes.json());
     setMeasurements(await gRes.json());
     setVaccinations(await vRes.json());
     setVisits(await dRes.json());
     setObservations(await oRes.json());
+    setTeethLogs(await tRes.json());
   }, []);
 
   useEffect(() => {
@@ -247,6 +253,33 @@ export default function DevelopmentPage() {
     if (!child || !newVaccineName.trim()) return;
     const res = await fetch("/api/vaccinations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ childId: child.id, vaccineName: newVaccineName, scheduledDate: newVaccineDate ? new Date(newVaccineDate) : null }) });
     if (res.ok) { toast.success("Aşı eklendi"); setNewVaccineName(""); setShowVaccineForm(false); fetchData(child); }
+  };
+
+  const addTooth = async () => {
+    if (!child || !newToothName.trim()) return;
+    const res = await fetch("/api/daily-logs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ childId: child.id, type: "teeth", logDate: `${newToothDate}T12:00:00.000Z`, notes: newToothName, startedAt: `${newToothDate}T12:00:00.000Z` }),
+    });
+    if (res.ok) { toast.success("Diş kaydedildi"); setNewToothName(""); fetchData(child); }
+  };
+
+  const deleteTooth = async (id: string) => {
+    if (!child || !confirm("Bu diş kaydını silmek istediğinize emin misiniz?")) return;
+    await fetch(`/api/daily-logs?id=${id}`, { method: "DELETE" });
+    fetchData(child);
+    toast.success("Diş kaydı silindi");
+  };
+
+  const editTooth = async (log: DailyLog) => {
+    const newNote = prompt("Diş adı:", log.notes || "");
+    if (!newNote || !child) return;
+    const newDate = prompt("Tarih (YYYY-AA-GG):", new Date(log.startedAt).toISOString().split("T")[0]);
+    if (!newDate) return;
+    await fetch("/api/daily-logs", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: log.id, notes: newNote, startedAt: `${newDate}T12:00:00.000Z`, logDate: `${newDate}T12:00:00.000Z` }) });
+    toast.success("Diş güncellendi");
+    fetchData(child);
   };
 
   const saveDoctorVisit = async () => {
@@ -650,13 +683,77 @@ export default function DevelopmentPage() {
 
       {/* TEETH TAB */}
       {activeTab === "teeth" && (
-        <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant/10">
-          <h3 className="font-serif text-lg text-on-surface mb-4">Diş Takibi</h3>
-          <div className="grid grid-cols-2 gap-6 max-w-md mx-auto">
-            <TeethJaw label="Üst Çene" positions={["right_back", "right_front", "front_right", "front_left", "left_front", "left_back"]} />
-            <TeethJaw label="Alt Çene" positions={["right_back", "right_front", "front_right", "front_left", "left_front", "left_back"]} />
+        <div className="space-y-4">
+          <div className="bg-surface rounded-2xl p-5 shadow-sm border border-outline-variant/10 space-y-3">
+            <h3 className="font-serif text-lg text-on-surface">Diş Ekle</h3>
+            <div className="flex gap-2">
+              <select value={newToothName} onChange={(e) => setNewToothName(e.target.value)}
+                className="flex-1 px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-lowest text-sm">
+                <option value="">Diş seçin</option>
+                <option value="Alt Ön Kesici (Sağ)">Alt Ön Kesici (Sağ)</option>
+                <option value="Alt Ön Kesici (Sol)">Alt Ön Kesici (Sol)</option>
+                <option value="Üst Ön Kesici (Sağ)">Üst Ön Kesici (Sağ)</option>
+                <option value="Üst Ön Kesici (Sol)">Üst Ön Kesici (Sol)</option>
+                <option value="Üst Yan Kesici (Sağ)">Üst Yan Kesici (Sağ)</option>
+                <option value="Üst Yan Kesici (Sol)">Üst Yan Kesici (Sol)</option>
+                <option value="Alt Yan Kesici (Sağ)">Alt Yan Kesici (Sağ)</option>
+                <option value="Alt Yan Kesici (Sol)">Alt Yan Kesici (Sol)</option>
+                <option value="İlk Azı (Üst Sağ)">İlk Azı (Üst Sağ)</option>
+                <option value="İlk Azı (Üst Sol)">İlk Azı (Üst Sol)</option>
+                <option value="İlk Azı (Alt Sağ)">İlk Azı (Alt Sağ)</option>
+                <option value="İlk Azı (Alt Sol)">İlk Azı (Alt Sol)</option>
+                <option value="Köpek Dişi (Üst Sağ)">Köpek Dişi (Üst Sağ)</option>
+                <option value="Köpek Dişi (Üst Sol)">Köpek Dişi (Üst Sol)</option>
+                <option value="Köpek Dişi (Alt Sağ)">Köpek Dişi (Alt Sağ)</option>
+                <option value="Köpek Dişi (Alt Sol)">Köpek Dişi (Alt Sol)</option>
+                <option value="İkinci Azı (Üst Sağ)">İkinci Azı (Üst Sağ)</option>
+                <option value="İkinci Azı (Üst Sol)">İkinci Azı (Üst Sol)</option>
+                <option value="İkinci Azı (Alt Sağ)">İkinci Azı (Alt Sağ)</option>
+                <option value="İkinci Azı (Alt Sol)">İkinci Azı (Alt Sol)</option>
+              </select>
+            </div>
+            <input type="date" value={newToothDate} onChange={(e) => setNewToothDate(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-lowest text-sm" />
+            <button onClick={addTooth} disabled={!newToothName.trim()}
+              className="w-full py-3 rounded-full bg-primary text-on-primary text-sm font-medium hover:bg-surface-tint disabled:opacity-50">
+              Diş Ekle
+            </button>
           </div>
-          <div className="mt-6 p-4 bg-surface-container-low rounded-xl">
+
+          {teethLogs.length === 0 ? (
+            <div className="bg-surface rounded-2xl p-12 text-center shadow-sm border border-outline-variant/10">
+              <Smile size={32} className="text-on-surface-variant/40 mx-auto mb-3" />
+              <p className="text-on-surface-variant text-sm">Henüz diş kaydı yok.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {Object.entries(
+                teethLogs.reduce((acc, t) => {
+                  const d = new Date(t.startedAt).toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+                  if (!acc[d]) acc[d] = []; acc[d].push(t); return acc;
+                }, {} as Record<string, DailyLog[]>)
+              ).map(([date, items]) => (
+                <div key={date}>
+                  <h3 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-1 mb-2">{date}</h3>
+                  <div className="space-y-2">
+                    {items.map((t) => (
+                      <div key={t.id} className="bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant/10 flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-on-surface">{t.notes || "Diş"}</p>
+                          <p className="text-xs text-on-surface-variant">{new Date(t.startedAt).toLocaleDateString("tr-TR")}</p>
+                        </div>
+                        <div className="flex gap-1">
+                          <button onClick={() => editTooth(t)} className="w-6 h-6 rounded-full flex items-center justify-center text-on-surface-variant/40 hover:text-primary"><Pencil size={12} /></button>
+                          <button onClick={() => deleteTooth(t.id)} className="w-6 h-6 rounded-full flex items-center justify-center text-on-surface-variant/40 hover:text-error"><Trash2 size={12} /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="bg-surface rounded-2xl p-5 shadow-sm border border-outline-variant/10">
             <h4 className="text-sm font-medium text-on-surface mb-2">Diş Çıkarma Sıralaması</h4>
             <div className="space-y-1 text-xs text-on-surface-variant">
               <p><span className="font-medium text-on-surface">6-10 ay:</span> Alt ön kesiciler</p>

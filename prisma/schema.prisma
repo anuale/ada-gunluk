@@ -120,7 +120,7 @@ model Milestone {
   milestoneKey String
   title       String
   description String?
-  ageMonth    Int?
+  ageMonth    Float?
   achievedAt  DateTime?
   notes       String?
   createdAt   DateTime  @default(now())

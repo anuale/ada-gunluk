@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Milestone" ALTER COLUMN "ageMonth" TYPE DOUBLE PRECISION;
