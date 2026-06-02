@@ -13,6 +13,7 @@ import {
   Sparkles,
   Pencil,
   Trash2,
+  ChevronDown,
 } from "lucide-react";
 import { LogForm } from "@/components/tracking/log-form";
 import { formatDuration } from "@/components/tracking/timer";
@@ -74,6 +75,16 @@ function TimelinePageInner() {
   const [logType, setLogType] = useState<"feeding" | "sleep" | "diaper" | "ec">("feeding");
   const [showReflection, setShowReflection] = useState(false);
   const [editingLog, setEditingLog] = useState<DailyLog | null>(null);
+  const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
+
+  const toggleDate = (date: string) => {
+    setCollapsedDates((prev) => {
+      const next = new Set(prev);
+      if (next.has(date)) next.delete(date);
+      else next.add(date);
+      return next;
+    });
+  };
 
   const fetchChild = useCallback(async () => {
     try {
@@ -97,6 +108,13 @@ function TimelinePageInner() {
       if (res.ok) {
         const data = await res.json();
         setLogs(data);
+        const today = new Date().toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        const pastDates = new Set<string>();
+        data.forEach((log: DailyLog) => {
+          const d = new Date(log.startedAt).toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+          if (d !== today) pastDates.add(d);
+        });
+        setCollapsedDates(pastDates);
       }
     } catch {
       toast.error("Veriler yüklenemedi");
@@ -295,9 +313,19 @@ function TimelinePageInner() {
         </div>
       ) : (
         <div className="space-y-4">
-          {Object.entries(groupedLogs).map(([date, dateLogs]) => (
+          {Object.entries(groupedLogs).map(([date, dateLogs]) => {
+            const isCollapsed = collapsedDates.has(date);
+            return (
             <div key={date}>
-              <h3 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-1 mb-2">{date}</h3>
+              <button
+                onClick={() => toggleDate(date)}
+                className="flex items-center gap-2 w-full text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-1 mb-1 hover:text-on-surface transition-colors"
+              >
+                <ChevronDown size={14} className={`transition-transform ${isCollapsed ? "-rotate-90" : ""}`} />
+                {date}
+                <span className="font-normal normal-case text-on-surface-variant/50">({dateLogs.length})</span>
+              </button>
+              {!isCollapsed && (
               <div className="space-y-2">
                 {dateLogs.map((log) => {
                   const Icon = getLogIcon(log.type);
@@ -361,6 +389,7 @@ function TimelinePageInner() {
                   );
                 })}
               </div>
+              )}
             </div>
           ))}
         </div>

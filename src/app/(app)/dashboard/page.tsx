@@ -11,6 +11,8 @@ import {
   Lightbulb,
   Syringe,
   Plus,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { formatDuration, formatTimeAgo } from "@/components/tracking/timer";
 
@@ -29,9 +31,23 @@ interface DailyLog {
   data: Record<string, unknown> | null;
 }
 
+const tips = [
+  { text: "Bebeğiniz ile bol bol konuşun. Yaptığınız her şeyi anlatın. İlk 3 yılda beyin gelişiminin %85'i tamamlanır.", source: "30 Milyon Kelime — Dana Suskind" },
+  { text: "Bebek ağladığında hemen koşmayın, birkaç saniye bekleyin. Bu 'pause' bebeğin kendi kendine sakinleşmesini öğrenmesine yardımcı olur.", source: "Bebeğinize Fransız Kalın — Pamela Druckerman" },
+  { text: "Çocuğunuzun davranışının altında her zaman karşılanmamış bir ihtiyaç vardır. 'Senden nefret ediyorum' = 'Şu anda çok zorlanıyorum' demektir.", source: "Good Inside — Dr. Becky Kennedy" },
+  { text: "Öfke anında çocuk 'kapağı attıysa' önce sakinleşmesini bekleyin. Beynin düşünen kısmı çevrimdışıyken öğretemezsiniz.", source: "Dramsız Disiplin — Siegel & Bryson" },
+  { text: "Kahkaha en değerli oyundur. Çocuğun güçlü olduğu oyunlar (yastık savaşı, güreş) saldırganlığı azaltır.", source: "Oyun Oynama Sanatı — Aletha Solter" },
+  { text: "Sınırları sakin ve net koyun: 'Vurmak yok, seni tutmam gerekiyor.' Duyguları kabul edin, davranışı sınırlayın. Ödül ve ceza kullanmayın.", source: "No Bad Kids — Janet Lansbury" },
+  { text: "Çocuğunuzun iç dünyasını anlamaya çalışın. Değerler öğretilmez, yaşanır. Ebeveyn çocuğun en güçlü tanığıdır.", source: "Geliştiren Anne-Baba — Doğan Cüceloğlu" },
+  { text: "Çocuklar doğuştan tuvalet ihtiyaçlarını iletir. İşaret sesleri (çişşş, psss) kullanarak doğumdan itibaren tuvalet iletişimi kurabilirsiniz.", source: "Tuvalet İletişimi — Evren Bay Şengül" },
+  { text: "0-3 yaş 'bilinçsiz emici zihin' dönemidir. Çocuk çevresindeki her şeyi sünger gibi emer. Gözlemleyin, müdahale etmeyin.", source: "Montessori Metodu — Maria Montessori" },
+  { text: "Çocuğunuza 'Kızgın olduğunu görüyorum' deyin. Duyguları onaylayın, yargılamayın. Övgüde çabayı vurgulayın, karakteri değil.", source: "Anne Baba ve Çocuk Arasında — Haim Ginott" },
+];
+
 export default function DashboardPage() {
   const [child, setChild] = useState<Child | null>(null);
   const [logs, setLogs] = useState<DailyLog[]>([]);
+  const [tipIndex, setTipIndex] = useState(() => Math.floor(Math.random() * tips.length));
   const router = useRouter();
 
   useEffect(() => {
@@ -281,17 +297,31 @@ export default function DashboardPage() {
 
         <div className="space-y-6">
           <aside className="bg-amber-50/80 rounded-2xl p-6 shadow-sm border border-amber-900/5 relative overflow-hidden">
-            <div className="flex items-center gap-2 mb-3">
-              <Lightbulb size={20} className="text-amber-700" />
-              <h3 className="font-serif text-lg text-amber-900">
-                Bugünün Önerisi
-              </h3>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Lightbulb size={20} className="text-amber-700" />
+                <h3 className="font-serif text-lg text-amber-900">Bugünün Önerisi</h3>
+              </div>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setTipIndex((i) => (i - 1 + tips.length) % tips.length)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-amber-700/60 hover:text-amber-700 hover:bg-amber-100 transition-colors"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  onClick={() => setTipIndex((i) => (i + 1) % tips.length)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-amber-700/60 hover:text-amber-700 hover:bg-amber-100 transition-colors"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
             </div>
             <blockquote className="text-sm text-amber-900/80 italic leading-relaxed mb-3">
-              &ldquo;{child?.name || "Bebeğiniz"} ile bol bol konuşun. Her gün duyduğu kelime sayısı, dil gelişiminin temelini oluşturur. Yaptığınız her şeyi anlatın.&rdquo;
+              &ldquo;{tips[tipIndex].text}&rdquo;
             </blockquote>
             <span className="text-xs text-amber-800/70 font-medium">
-              30 Milyon Kelime — Dana Suskind
+              {tips[tipIndex].source}
             </span>
           </aside>
 
