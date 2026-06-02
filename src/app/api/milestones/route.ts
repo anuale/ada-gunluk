@@ -30,7 +30,7 @@ export async function PUT(request: Request) {
   const milestone = await prisma.milestone.update({
     where: { id },
     data: {
-      achievedAt: achievedAt ? new Date(achievedAt) : new Date(),
+      achievedAt: achievedAt ? new Date(achievedAt) : null,
       notes: notes ?? undefined,
     },
   });

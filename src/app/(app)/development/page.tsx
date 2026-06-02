@@ -2,16 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  TrendingUp,
-  Ruler,
-  Syringe,
-  Smile,
-  Stethoscope,
-  Check,
-  Plus,
-  X,
-  Circle,
-  UserPlus,
+  TrendingUp, Ruler, Syringe, Smile, Stethoscope,
+  Check, Plus, X, Circle, UserPlus, Eye, Pencil, Trash2,
 } from "lucide-react";
 import {
   LineChart,
@@ -25,7 +17,7 @@ import {
 import Link from "next/link";
 import toast from "react-hot-toast";
 
-type Tab = "milestones" | "growth" | "vaccines" | "teeth" | "doctor";
+type Tab = "milestones" | "growth" | "vaccines" | "teeth" | "doctor" | "observations";
 
 interface Child {
   id: string;
@@ -68,12 +60,22 @@ interface DoctorVisit {
   notes: string | null;
 }
 
+interface DailyLog {
+  id: string;
+  type: string;
+  startedAt: string;
+  logDate: string;
+  notes: string | null;
+  data: Record<string, unknown> | null;
+}
+
 const tabs: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: "milestones", label: "Kilometre Taşları", icon: TrendingUp },
   { key: "growth", label: "Büyüme", icon: Ruler },
   { key: "vaccines", label: "Aşılar", icon: Syringe },
   { key: "teeth", label: "Diş", icon: Smile },
   { key: "doctor", label: "Doktor", icon: Stethoscope },
+  { key: "observations", label: "Gözlem", icon: Eye },
 ];
 
 const categories: { key: string; label: string }[] = [
@@ -90,6 +92,9 @@ export default function DevelopmentPage() {
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [vaccinations, setVaccinations] = useState<Vaccination[]>([]);
   const [visits, setVisits] = useState<DoctorVisit[]>([]);
+  const [observations, setObservations] = useState<DailyLog[]>([]);
+  const [obsNote, setObsNote] = useState("");
+  const [obsDate, setObsDate] = useState(new Date().toISOString().split("T")[0]);
   const [milestoneFilter, setMilestoneFilter] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
 
@@ -119,16 +124,18 @@ export default function DevelopmentPage() {
   }, []);
 
   const fetchData = useCallback(async (c: Child) => {
-    const [mRes, gRes, vRes, dRes] = await Promise.all([
+    const [mRes, gRes, vRes, dRes, oRes] = await Promise.all([
       fetch(`/api/milestones?childId=${c.id}`),
       fetch(`/api/growth?childId=${c.id}`),
       fetch(`/api/vaccinations?childId=${c.id}`),
       fetch(`/api/doctor-visits?childId=${c.id}`),
+      fetch(`/api/daily-logs?childId=${c.id}&type=development`),
     ]);
     setMilestones(await mRes.json());
     setMeasurements(await gRes.json());
     setVaccinations(await vRes.json());
     setVisits(await dRes.json());
+    setObservations(await oRes.json());
   }, []);
 
   useEffect(() => {
@@ -218,6 +225,30 @@ export default function DevelopmentPage() {
       setShowDoctorForm(false);
       fetchData(child);
     }
+  };
+
+  const saveObservation = async () => {
+    if (!child || !obsNote.trim()) return;
+    const res = await fetch("/api/daily-logs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ childId: child.id, type: "development", logDate: `${obsDate}T12:00:00.000Z`, notes: obsNote, startedAt: `${obsDate}T12:00:00.000Z` }),
+    });
+    if (res.ok) { toast.success("Gözlem kaydedildi"); setObsNote(""); fetchData(child); }
+  };
+
+  const deleteObservation = async (id: string) => {
+    if (!child || !confirm("Bu gözlemi silmek istediğinize emin misiniz?")) return;
+    await fetch(`/api/daily-logs?id=${id}`, { method: "DELETE" });
+    fetchData(child);
+    toast.success("Gözlem silindi");
+  };
+
+  const editObservation = async (obs: DailyLog) => {
+    const newNote = prompt("Gözlemi düzenle:", obs.notes || "");
+    if (!newNote || !child) return;
+    const res = await fetch("/api/daily-logs", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: obs.id, notes: newNote }) });
+    if (res.ok) { toast.success("Gözlem güncellendi"); fetchData(child); }
   };
 
   if (!child) {
@@ -623,6 +654,58 @@ export default function DevelopmentPage() {
                 {v.notes && <p className="text-xs text-on-surface-variant mt-2 italic">{v.notes}</p>}
               </div>
             ))
+          )}
+        </div>
+      )}
+
+      {/* OBSERVATIONS TAB */}
+      {activeTab === "observations" && (
+        <div className="space-y-4">
+          <div className="bg-surface rounded-2xl p-5 shadow-sm border border-outline-variant/10 space-y-3">
+            <h3 className="font-serif text-lg text-on-surface">Gelişim Gözlemi Ekle</h3>
+            <input type="date" value={obsDate} onChange={(e) => setObsDate(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-lowest text-sm" />
+            <textarea value={obsNote} onChange={(e) => setObsNote(e.target.value)} rows={3}
+              placeholder="Bugün neler gözlemledin? Yeni bir beceri, ilginç bir davranış..."
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-lowest text-sm resize-none" />
+            <button onClick={saveObservation} disabled={!obsNote.trim()}
+              className="w-full py-3 rounded-full bg-primary text-on-primary text-sm font-medium hover:bg-surface-tint disabled:opacity-50">
+              Gözlem Ekle
+            </button>
+          </div>
+
+          {observations.length === 0 ? (
+            <div className="bg-surface rounded-2xl p-12 text-center shadow-sm border border-outline-variant/10">
+              <Eye size={32} className="text-on-surface-variant/40 mx-auto mb-3" />
+              <p className="text-on-surface-variant text-sm">Henüz gelişim gözlemi yok.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {Object.entries(
+                observations.reduce((acc, o) => {
+                  const d = new Date(o.startedAt).toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+                  if (!acc[d]) acc[d] = []; acc[d].push(o); return acc;
+                }, {} as Record<string, DailyLog[]>)
+              ).map(([date, items]) => (
+                <div key={date}>
+                  <h3 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-1 mb-2">{date}</h3>
+                  <div className="space-y-2">
+                    {items.map((o) => (
+                      <div key={o.id} className="bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant/10">
+                        <p className="text-sm text-on-surface leading-relaxed whitespace-pre-wrap">{o.notes || "—"}</p>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-xs text-on-surface-variant/50">{new Date(o.startedAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}</span>
+                          <div className="flex gap-1">
+                            <button onClick={() => editObservation(o)} className="w-6 h-6 rounded-full flex items-center justify-center text-on-surface-variant/40 hover:text-primary"><Pencil size={12} /></button>
+                            <button onClick={() => deleteObservation(o.id)} className="w-6 h-6 rounded-full flex items-center justify-center text-on-surface-variant/40 hover:text-error"><Trash2 size={12} /></button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
