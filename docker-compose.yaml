@@ -5,8 +5,6 @@ services:
     container_name: ada-gunluk
     expose:
       - "3000"
-    ports:
-      - "3100:3000"
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@ada-db:5432/ada_gunluk}
       - AUTH_SECRET=${AUTH_SECRET}
@@ -15,7 +13,6 @@ services:
     restart: unless-stopped
     networks:
       - ada-network
-      - coolify
     depends_on:
       ada-db:
         condition: service_healthy
@@ -32,8 +29,6 @@ services:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"
       POSTGRES_DB: "ada_gunluk"
-    ports:
-      - "127.0.0.1:5433:5432"
     volumes:
       - ada-pgdata:/var/lib/postgresql/data
     restart: unless-stopped
@@ -51,5 +46,3 @@ volumes:
 networks:
   ada-network:
     driver: bridge
-  coolify:
-    external: true
