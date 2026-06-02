@@ -140,6 +140,7 @@ export default function DevelopmentPage() {
       fetch(`/api/growth?childId=${c.id}`),
       fetch(`/api/vaccinations?childId=${c.id}`),
       fetch(`/api/doctor-visits?childId=${c.id}`),
+      fetch(`/api/daily-logs?childId=${c.id}&type=development`),
       fetch(`/api/daily-logs?childId=${c.id}&type=teeth`),
     ]);
     setMilestones(await mRes.json());
