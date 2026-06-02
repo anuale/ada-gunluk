@@ -402,7 +402,7 @@ export default function DevelopmentPage() {
                       <div className="flex items-center gap-2">
                         <h4 className="text-sm font-medium text-on-surface">{m.title}</h4>
                         <span className="text-[10px] text-on-surface-variant bg-surface-container-low px-1.5 py-0.5 rounded-full">
-                          {m.ageMonth}. ay
+                          {m.ageMonth < 1 ? `${Math.round(m.ageMonth * 4)}. hafta` : `${m.ageMonth}. ay`}
                         </span>
                       </div>
                       <p className="text-xs text-on-surface-variant mt-0.5">{m.description}</p>
