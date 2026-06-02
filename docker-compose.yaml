@@ -13,6 +13,7 @@ services:
     restart: unless-stopped
     networks:
       - ada-network
+      - coolify
     depends_on:
       ada-db:
         condition: service_healthy
@@ -43,3 +44,5 @@ volumes:
 networks:
   ada-network:
     driver: bridge
+  coolify:
+    external: true
