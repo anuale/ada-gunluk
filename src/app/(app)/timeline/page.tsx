@@ -76,15 +76,7 @@ function TimelinePageInner() {
   const [showReflection, setShowReflection] = useState(false);
   const [editingLog, setEditingLog] = useState<DailyLog | null>(null);
   const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
-
-  const toggleDate = (date: string) => {
-    setCollapsedDates((prev) => {
-      const next = new Set(prev);
-      if (next.has(date)) next.delete(date);
-      else next.add(date);
-      return next;
-    });
-  };
+  const toggleDate = (d: string) => setCollapsedDates((prev) => { const next = new Set(prev); if (next.has(d)) next.delete(d); else next.add(d); return next; });
 
   const fetchChild = useCallback(async () => {
     try {
@@ -108,13 +100,13 @@ function TimelinePageInner() {
       if (res.ok) {
         const data = await res.json();
         setLogs(data);
-        const today = new Date().toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-        const pastDates = new Set<string>();
+        const todayLabel = new Date().toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        const past = new Set<string>();
         data.forEach((log: DailyLog) => {
-          const d = new Date(log.startedAt).toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-          if (d !== today) pastDates.add(d);
+          const dl = new Date(log.startedAt).toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+          if (dl !== todayLabel) past.add(dl);
         });
-        setCollapsedDates(pastDates);
+        setCollapsedDates(past);
       }
     } catch {
       toast.error("Veriler yüklenemedi");
@@ -317,13 +309,9 @@ function TimelinePageInner() {
             const isCollapsed = collapsedDates.has(date);
             return (
             <div key={date}>
-              <button
-                onClick={() => toggleDate(date)}
-                className="flex items-center gap-2 w-full text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-1 mb-1 hover:text-on-surface transition-colors"
-              >
+              <button onClick={() => toggleDate(date)} className="flex items-center gap-2 w-full text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-1 mb-1 hover:text-on-surface transition-colors">
                 <ChevronDown size={14} className={`transition-transform ${isCollapsed ? "-rotate-90" : ""}`} />
-                {date}
-                <span className="font-normal normal-case text-on-surface-variant/50">({dateLogs.length})</span>
+                {date} <span className="font-normal normal-case text-on-surface-variant/50 ml-1">({dateLogs.length})</span>
               </button>
               {!isCollapsed && (
               <div className="space-y-2">
@@ -391,7 +379,8 @@ function TimelinePageInner() {
               </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
       <FAB onSelect={handleOpenLog} open={showFabMenu} onToggle={() => setShowFabMenu(!showFabMenu)} />
