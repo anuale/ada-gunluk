@@ -54,7 +54,7 @@ export function TopBar() {
             <Bell size={20} />
           </button>
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => { if (confirm("Oturumu kapatmak istediğinize emin misiniz?")) signOut({ callbackUrl: "/login" }); }}
             className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors active:scale-95"
           >
             <UserCircle size={20} />
@@ -97,7 +97,7 @@ export function TopBar() {
             </nav>
             <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-outline-variant/10">
               <button
-                onClick={() => { setMenuOpen(false); signOut({ callbackUrl: "/login" }); }}
+                onClick={() => { setMenuOpen(false); if (confirm("Oturumu kapatmak istediğinize emin misiniz?")) signOut({ callbackUrl: "/login" }); }}
                 className="w-full py-3 rounded-full border border-outline-variant text-on-surface-variant text-sm font-medium hover:bg-surface-container-low transition-colors"
               >
                 Çıkış Yap
