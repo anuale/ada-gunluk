@@ -280,7 +280,7 @@ export default function NotesPage() {
           <p className="text-sm text-on-surface-variant mb-4">
             {search || filterTag
               ? "Aramanızla eşleşen not bulunamadı."
-              : "İlk notunuzu oluşturmak için &ldquo;Yeni Not&rdquo; butonuna tıklayın."}
+              : "İlk notunuzu oluşturmak için Yeni Not butonuna tıklayın."}
           </p>
         </div>
       ) : (

@@ -13,6 +13,8 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
+  Send,
 } from "lucide-react";
 import { formatDuration, formatTimeAgo } from "@/components/tracking/timer";
 
@@ -42,12 +44,107 @@ const tips = [
   { text: "Çocuklar doğuştan tuvalet ihtiyaçlarını iletir. İşaret sesleri (çişşş, psss) kullanarak doğumdan itibaren tuvalet iletişimi kurabilirsiniz.", source: "Tuvalet İletişimi — Evren Bay Şengül" },
   { text: "0-3 yaş 'bilinçsiz emici zihin' dönemidir. Çocuk çevresindeki her şeyi sünger gibi emer. Gözlemleyin, müdahale etmeyin.", source: "Montessori Metodu — Maria Montessori" },
   { text: "Çocuğunuza 'Kızgın olduğunu görüyorum' deyin. Duyguları onaylayın, yargılamayın. Övgüde çabayı vurgulayın, karakteri değil.", source: "Anne Baba ve Çocuk Arasında — Haim Ginott" },
+  { text: "Ebeveyn olarak çocuğunuza en büyük hediyeniz, sakin ve tutarlı bir varlık olmanızdır. Onlar sizin duygusal durumunuzu ayna gibi yansıtır.", source: "Geliştiren Anne-Baba — Doğan Cüceloğlu" },
+  { text: "Bebeğinizin ağlamasına bir süre izin verin. Her ağlama acil durum değildir. Kendi kendine sakinleşme becerisi kazanması için fırsat tanıyın.", source: "Bebeğinize Fransız Kalın — Pamela Druckerman" },
+  { text: "Çocuğunuza sınır koyarken 'Hayır'dan sonra alternatif sunun. 'Hayır, vurmak yok. Bunun yerine yastığa vurabilirsin.'", source: "Dramsız Disiplin — Siegel & Bryson" },
+  { text: "Bebeğinizle göz teması kurarak konuşun. Yüzünüzü 20-30 cm mesafede tutun — yeni doğanlar en iyi bu mesafeyi görür.", source: "30 Milyon Kelime — Dana Suskind" },
+  { text: "Her gün en az 15 dakika, sadece çocuğunuza odaklanın. Telefonu bırakın, TV'yi kapatın, sadece onunla olun.", source: "Hold On to Your Kids — Neufeld & Maté" },
+  { text: "Çocuğunuz size bir şey gösterdiğinde, ona tam dikkatinizi verin. Bu anlar bağlanma için altın değerindedir.", source: "Good Inside — Dr. Becky Kennedy" },
+  { text: "Yemek zamanlarını ailece geçirin. Fransızlar gibi tek bir ara öğün (16:30 goûter) yeterlidir. Sürekli atıştırma iştahı bozar.", source: "Bebeğinize Fransız Kalın — Pamela Druckerman" },
+  { text: "Çocuğunuzun yanında asla onun hakkında olumsuz konuşmayın. Sizi anlamasa bile ses tonunuzu hisseder.", source: "Anne Baba ve Çocuk Arasında — Haim Ginott" },
+  { text: "Oyuncak sayısını azaltın. Az sayıda, açık uçlu oyuncak (bloklar, toplar, basit bebekler) yaratıcılığı daha çok destekler.", source: "Montessori Metodu — Maria Montessori" },
+  { text: "Çocuğunuzun duygularını adlandırmasına yardımcı olun: 'Şu anda hayal kırıklığına uğramış görünüyorsun.'", source: "Dramsız Disiplin — Siegel & Bryson" },
+  { text: "Bebeğiniz emeklemeye başladığında evi güvenli hale getirin, ama her şeyi yasaklamayın. Keşfetmesine izin verin.", source: "No Bad Kids — Janet Lansbury" },
+  { text: "Uyku rutini oluşturun: banyo, kitap, ninni, uyku. Her gün aynı sırayla yapın. Rutinler bebeğe güven verir.", source: "L'età dei Miracoli — Hedvig Montgomery" },
+  { text: "Çocuğunuzun size anlattıklarını ciddiye alın. Onun dünyasında çok önemli olan şeyleri küçümsemeyin.", source: "Anne Baba ve Çocuk Arasında — Haim Ginott" },
+  { text: "Her gün çocuğunuza kitap okuyun. 0-3 yaş arası kitap okumak, dil gelişiminin en güçlü destekleyicisidir.", source: "30 Milyon Kelime — Dana Suskind" },
+  { text: "Çocuğunuzun öfke nöbeti sırasında sakin kalın. Onun yanında olun ama nöbeti durdurmaya çalışmayın. Geçmesini bekleyin.", source: "No Bad Kids — Janet Lansbury" },
+  { text: "Tuvalet eğitimine çocuğunuz hazır olduğunda başlayın. Zorlamayın. Hazırlık işaretleri: 2 saat kuru kalma, tuvalete ilgi gösterme.", source: "Tuvalet İletişimi — Evren Bay Şengül" },
+  { text: "Bebeğinizin ağlama tiplerini öğrenin: açlık ağlaması, yorgunluk ağlaması, rahatsızlık ağlaması farklıdır.", source: "L'età dei Miracoli — Hedvig Montgomery" },
+  { text: "Çocuğunuzla birlikte doğada vakit geçirin. Toprak, çimen, yapraklar en iyi oyuncaklardır.", source: "Montessori Metodu — Maria Montessori" },
+  { text: "Kardeş kıskançlığında büyük çocuğa özel birebir zaman ayırın. 'Sen benim ilk göz ağrımsın' mesajını verin.", source: "Oyun Oynama Sanatı — Aletha Solter" },
+  { text: "Çocuğunuza seçenek sunun ama sınırlı olsun: 'Mavi tişört mü giymek istersin, kırmızı mı?' — iki seçenek de kabul edilebilir olmalı.", source: "No Bad Kids — Janet Lansbury" },
+  { text: "Övgüyü betimleyici yapın: 'Bu resimde çok güzel renkler kullanmışsın' — 'Ne kadar yeteneklisin' yerine.", source: "Anne Baba ve Çocuk Arasında — Haim Ginott" },
+  { text: "Bebeğinizin beslenme sinyallerini takip edin. Ağlamak geç bir sinyaldir; dudak şapırdatma, el ağıza götürme erken sinyallerdir.", source: "30 Milyon Kelime — Dana Suskind" },
+  { text: "Çocuğunuzun kendi kendine oynamasına izin verin. Sürekli onu eğlendirmek zorunda değilsiniz. Bağımsız oyun önemlidir.", source: "Bebeğinize Fransız Kalın — Pamela Druckerman" },
+  { text: "Beslenme saatlerini düzene sokun. Düzenli öğün saatleri, çocuğun vücut saatini ve iştahını düzenler.", source: "Bebeğinize Fransız Kalın — Pamela Druckerman" },
+  { text: "Çocuğunuzla konuşurken basit ve net olun. Uzun açıklamalar küçük çocuklar için kafa karıştırıcıdır.", source: "No Bad Kids — Janet Lansbury" },
+  { text: "Disiplini öğrenme fırsatı olarak görün. 'Bu davranışın sonucu şu oldu. Bir dahaki sefere ne yapabiliriz?'", source: "Dramsız Disiplin — Siegel & Bryson" },
+  { text: "Bebeğinize her gün aynı ninniyi söyleyin. Tanıdık ses ve melodi, en zor anlarda bile onu sakinleştirir.", source: "L'età dei Miracoli — Hedvig Montgomery" },
+  { text: "Küçük çocuklar için düzen çok önemlidir. Eşyaların yeri, günlük rutin değişmemeli. Bu onlara güven verir.", source: "Montessori Metodu — Maria Montessori" },
+  { text: "Çocuğunuz ağlarken 'ağlama' demeyin. 'Ağlamanı anlıyorum, buradasın, güvendesin' deyin.", source: "Good Inside — Dr. Becky Kennedy" },
+  { text: "Emzirme süresini takip edin. Her iki memeyi de eşit süre emzirmek süt üretimini dengeler.", source: "30 Milyon Kelime — Dana Suskind" },
+  { text: "Çocuğunuzla tensel temas kurun. Ten tene temas, bağlanma hormonu oksitosini artırır ve bebeği sakinleştirir.", source: "Hold On to Your Kids — Neufeld & Maté" },
+  { text: "Hayır kelimesini sadece gerçekten önemli durumlarda kullanın. Her şeye hayır derseniz, anlamını yitirir.", source: "No Bad Kids — Janet Lansbury" },
+  { text: "Uyku öncesi ekran maruziyetini kesin. Mavi ışık melatonin üretimini baskılar, uykuya dalmayı zorlaştırır.", source: "Dramsız Disiplin — Siegel & Bryson" },
+  { text: "Çocuğunuz bir şey başardığında süreci övün: 'Bu yapbozu tamamlamak için çok uğraştın, pes etmedin.'", source: "Anne Baba ve Çocuk Arasında — Haim Ginott" },
+  { text: "Bebeğinizin ilk gülümsemesi, ilk kelimesi gibi anları kaçırmamak için telefonunuzu bir kenara bırakıp anın tadını çıkarın.", source: "L'età dei Miracoli — Hedvig Montgomery" },
+  { text: "Çocuğunuzla birlikte yemek yapın. 2 yaşından itibaren basit mutfak işlerine yardım edebilir (yoğurma, karıştırma).", source: "Montessori Metodu — Maria Montessori" },
+  { text: "Öfke nöbeti sırasında çocuğa 'sakin ol' demek işe yaramaz. Önce siz sakin olun, o size bakarak sakinleşecektir.", source: "Good Inside — Dr. Becky Kennedy" },
+  { text: "Her çocuğun gelişim hızı farklıdır. Kilometre taşlarını takip edin ama diğer çocuklarla kıyaslamayın.", source: "Geliştiren Anne-Baba — Doğan Cüceloğlu" },
+  { text: "Çocuğunuz yemek seçiyorsa ısrar etmeyin. Aynı yiyeceği farklı şekillerde sunmayı deneyin. 15-20 deneme gerekebilir.", source: "Bebeğinize Fransız Kalın — Pamela Druckerman" },
+  { text: "Aile toplantıları yapın. Haftada bir, herkesin duygularını paylaştığı kısa bir aile toplantısı bağları güçlendirir.", source: "Geliştiren Anne-Baba — Doğan Cüceloğlu" },
+  { text: "Çocuğunuza 'aferin' yerine neyi iyi yaptığını söyleyin. 'Aferin' belirsizdir, betimleyici övgü öğreticidir.", source: "Anne Baba ve Çocuk Arasında — Haim Ginott" },
+  { text: "Bebeğinizin altını değiştirirken ona ne yaptığınızı anlatın. Bu günlük rutinler bile dil gelişimi için fırsattır.", source: "30 Milyon Kelime — Dana Suskind" },
+  { text: "Evinizde çocuğunuzun seviyesinde bir dünya oluşturun: alçak askılar, ulaşılabilir oyuncak rafları, küçük masa-sandalye.", source: "Montessori Metodu — Maria Montessori" },
+  { text: "Çocuklar soru sorduğunda cevabı hemen vermek yerine 'Sence neden?' diye sorun. Düşünme becerisini geliştirir.", source: "Evet Beyinli Çocuk — Siegel & Bryson" },
+  { text: "Her akşam günün en güzel anını paylaşın. Bu ritüel, minnettarlık duygusunu geliştirir.", source: "Geliştiren Anne-Baba — Doğan Cüceloğlu" },
+  { text: "Çocuğunuzla konuşurken cümlelerinizi bir seviye yukarıda kurun. 2 kelimeli cümle kuruyorsa, siz 3 kelimeli karşılık verin.", source: "30 Milyon Kelime — Dana Suskind" },
+  { text: "Çocuğunuza sarılmak için özel bir an yaratın. Günde en az 12 sarılma, duygusal gelişim için önerilir.", source: "Hold On to Your Kids — Neufeld & Maté" },
+  { text: "Parmak boyası, kil, kum gibi duyusal materyallerle oynamasına izin verin. Duyusal keşif beyin gelişimini destekler.", source: "Montessori Metodu — Maria Montessori" },
+  { text: "Ağlama bir manipülasyon değil, iletişimdir. Bebekler ağlayarak ihtiyaçlarını iletir, sizi manipüle etmezler.", source: "No Bad Kids — Janet Lansbury" },
+  { text: "Çocuğunuzun korkularını ciddiye alın. 'Korkacak bir şey yok' demek yerine 'Bu sana korkutucu gelmiş' deyin.", source: "Good Inside — Dr. Becky Kennedy" },
+  { text: "Her aile bireyinin özel alanına saygı gösterin. Bu saygı, çocuğa da başkalarının sınırlarına saygı duymayı öğretir.", source: "Geliştiren Anne-Baba — Doğan Cüceloğlu" },
+  { text: "Gece uyanmalarında ışıkları açmayın, sessiz ve sakin olun. Bebeğinize 'gece uyku zamanı' mesajını tutarlı verin.", source: "Bebeğinize Fransız Kalın — Pamela Druckerman" },
+  { text: "Çocuğunuzla geçirdiğiniz kaliteli zaman, miktarından önemlidir. 15 dakikalık tam odaklanmış oyun, 1 saatlik yarım ilgiden iyidir.", source: "Hold On to Your Kids — Neufeld & Maté" },
+  { text: "Yemek masasında herkesin tabağında aynı yemek olsun. Çocuklar için ayrı yemek yapmak, seçici yeme davranışını pekiştirir.", source: "Bebeğinize Fransız Kalın — Pamela Druckerman" },
+  { text: "Çocuğunuza 'kızma, üzülme' demek yerine duyguyu kabul edin. Tüm duygular geçerlidir, sadece bazı davranışlar sınırlanır.", source: "Good Inside — Dr. Becky Kennedy" },
+  { text: "Bebeğinizle müzik dinleyin, dans edin. Ritim duygusu ve beden farkındalığı erken yaşta gelişir.", source: "Oyun Oynama Sanatı — Aletha Solter" },
+  { text: "Gün içinde bol bol isimlendirme yapın: 'Bu kırmızı bir elma', 'Bu mavi bir araba'. Nesne-isim eşleştirmesi dilin temelidir.", source: "30 Milyon Kelime — Dana Suskind" },
+  { text: "Çocuğunuzla ce-e oyunu oynayın. Bu basit oyun, nesne devamlılığı kavramını geliştirir ve ayrılık kaygısını azaltır.", source: "L'età dei Miracoli — Hedvig Montgomery" },
+  { text: "Çocuğunuz bir hata yaptığında cezalandırmak yerine sonuçlarıyla yüzleşmesine izin verin ve birlikte çözüm bulun.", source: "Dramsız Disiplin — Siegel & Bryson" },
+  { text: "Her gün dışarıda vakit geçirin. Güneş ışığı D vitamini için, temiz hava uyku kalitesi için önemlidir.", source: "L'età dei Miracoli — Hedvig Montgomery" },
+  { text: "Bebeğinizin çıkardığı sesleri taklit ederek 'sohbet' edin. Bu sıra alma becerisini öğretir.", source: "30 Milyon Kelime — Dana Suskind" },
+  { text: "Evinizde koşulsuz sevgi ortamı yaratın. Çocuğunuz hata yaptığında bile sevildiğini bilmeli.", source: "Geliştiren Anne-Baba — Doğan Cüceloğlu" },
+  { text: "Oyuncakları rotasyonla verin. Tüm oyuncakları aynı anda sunmak yerine, haftalık değiştirerek ilgiyi canlı tutun.", source: "Montessori Metodu — Maria Montessori" },
+  { text: "Bebeğinizin altını değiştirirken yüzüne bakın, konuşun. Bu rutin bakım anları, bağlanma için önemli fırsatlardır.", source: "L'età dei Miracoli — Hedvig Montgomery" },
+  { text: "Mükemmel ebeveyn olmaya çalışmayın. 'Yeterince iyi ebeveyn' olmak yeterlidir. Önemli olan tutarlılık ve sevgidir.", source: "Good Inside — Dr. Becky Kennedy" },
+  { text: "Çocuğunuz uyandığında kendi kendine biraz vakit geçirmesine izin verin. Hemen yanına koşmayın.", source: "Bebeğinize Fransız Kalın — Pamela Druckerman" },
+  { text: "Küçük yaştan itibaren 'lütfen' ve 'teşekkür ederim' kullanın. Çocuklar görerek öğrenir, duyarak değil.", source: "Geliştiren Anne-Baba — Doğan Cüceloğlu" },
+  { text: "Bebeğinizin uyku işaretlerini takip edin: göz ovuşturma, esneme, huzursuzluk. Bu işaretleri gördüğünüzde hemen uyku rutinine başlayın.", source: "L'età dei Miracoli — Hedvig Montgomery" },
+  { text: "Çocuğunuzla konuşurken göz hizanıza inin. Fiziksel olarak aynı seviyede olmak, kendini güvende ve önemli hissetmesini sağlar.", source: "No Bad Kids — Janet Lansbury" },
+  { text: "Beslenme zamanlarını stresten uzak tutun. Yemek savaşına girmeyin. Siz sağlıklı seçenekler sunun, o ne kadar yiyeceğine karar versin.", source: "Good Inside — Dr. Becky Kennedy" },
+  { text: "Çocuğunuzun kendi kıyafetini seçmesine izin verin. 2 yaşından itibaren basit seçimler yapabilir.", source: "Montessori Metodu — Maria Montessori" },
+  { text: "Özür dilemekten çekinmeyin. Ebeveyn olarak hata yaptığınızda özür dilemek, çocuğunuza sorumluluk almayı öğretir.", source: "Good Inside — Dr. Becky Kennedy" },
+  { text: "Bebeğiniz karın üstü zamanını sevmiyorsa kısa sürelerle başlayın. Ayna karşısında yapmak ilgisini çekebilir.", source: "L'età dei Miracoli — Hedvig Montgomery" },
+  { text: "Dil gelişimi için şarkı söyleyin. Basit tekrarlı şarkılar, kelime öğrenimini hızlandırır.", source: "30 Milyon Kelime — Dana Suskind" },
+  { text: "Çocuğunuzla birlikte gülün. Mizah duygusu, stres hormonlarını azaltır ve bağlanmayı güçlendirir.", source: "Oyun Oynama Sanatı — Aletha Solter" },
+  { text: "Her çocuğun mizacı farklıdır. Bazıları daha hassas, bazıları daha girişkendir. Mizacı değiştirmeye çalışmayın, onunla çalışın.", source: "Geliştiren Anne-Baba — Doğan Cüceloğlu" },
+  { text: "Ekran süresini 0-2 yaş için sıfırlayın, 2-3 yaş için günde 30 dakikayla sınırlayın. Birlikte izleyin ve içerik hakkında konuşun.", source: "WHO Ekran Süresi Rehberi" },
+  { text: "Çocuğunuzun doktor kontrollerini aksatmayın. Aşıları zamanında yaptırın. Koruyucu sağlık, tedaviden her zaman iyidir.", source: "T.C. Sağlık Bakanlığı" },
+  { text: "Bebeğinize kitap okurken ses tonunuzu değiştirin, farklı karakterler için farklı sesler kullanın. Bu dikkatini çeker.", source: "30 Milyon Kelime — Dana Suskind" },
+  { text: "Banyo zamanını oyun zamanına dönüştürün. Su oyunları duyusal gelişimi destekler ve banyoyu keyifli hale getirir.", source: "Oyun Oynama Sanatı — Aletha Solter" },
+  { text: "Çocuğunuzun kendi başına giyinme çabasını sabırla izleyin. 15 dakika sürebilir ama bu bağımsızlık için önemli bir adımdır.", source: "Montessori Metodu — Maria Montessori" },
+  { text: "Yürümeye yeni başlayan çocuğunuzun düşmesine izin verin (güvenli ortamda). Her düşüş, kalkmayı öğrenmek için bir fırsattır.", source: "No Bad Kids — Janet Lansbury" },
+  { text: "Her sabah çocuğunuza 'Seni seviyorum' deyin. Bu basit cümle, onun güven duygusunun temelini oluşturur.", source: "Geliştiren Anne-Baba — Doğan Cüceloğlu" },
+  { text: "Çocukların en iyi öğrenme şekli oyundur. Oyunu bir lüks değil, gelişimin temel aracı olarak görün.", source: "Oyun Oynama Sanatı — Aletha Solter" },
+  { text: "Bebeğinize masaj yapın. Özellikle banyo sonrası 5 dakikalık masaj, uyku kalitesini artırır ve bağlanmayı güçlendirir.", source: "L'età dei Miracoli — Hedvig Montgomery" },
+  { text: "Tutarlı olun. Bugün 'hayır' dediğiniz şeye yarın 'evet' derseniz, çocuğunuzun kafası karışır ve sınırları test etmeye başlar.", source: "No Bad Kids — Janet Lansbury" },
+  { text: "Çocuğunuza basit ev işleri verin. Oyuncakları toplamak, çamaşır sepete atmak gibi görevler sorumluluk duygusunu geliştirir.", source: "Montessori Metodu — Maria Montessori" },
+  { text: "Ebeveyn olarak kendinize de zaman ayırın. Siz iyi olmadan çocuğunuza iyi bakamazsınız. Yorulduğunuzda yardım istemekten çekinmeyin.", source: "Good Inside — Dr. Becky Kennedy" },
+  { text: "Bebeğinizin ek gıdaya geçişinde acele etmeyin. Her yeni gıdayı 3 gün arayla verin, alerji takibi yapın.", source: "T.C. Sağlık Bakanlığı" },
+  { text: "Çocuğunuzun boy ve kilosunu düzenli takip edin. Büyüme eğrisinde ani sapmaları doktorunuza danışın.", source: "WHO Büyüme Standartları" },
+  { text: "Çocuğunuzla sessiz anlar yaşayın. Her anı doldurmak zorunda değilsiniz. Sessizlik de bir bağlanma biçimidir.", source: "L'età dei Miracoli — Hedvig Montgomery" },
 ];
 
 export default function DashboardPage() {
   const [child, setChild] = useState<Child | null>(null);
   const [logs, setLogs] = useState<DailyLog[]>([]);
+  const [milestones, setMilestones] = useState<{ category: string; achieved: number; total: number }[]>([]);
   const [tipIndex, setTipIndex] = useState(() => Math.floor(Math.random() * tips.length));
+  const [aiInput, setAiInput] = useState("");
+  const [aiReply, setAiReply] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -57,16 +154,33 @@ export default function DashboardPage() {
         if (data.children?.length > 0) {
           const c = data.children[0];
           setChild(c);
-          const today = new Date().toISOString().split("T")[0];
-          return fetch(`/api/daily-logs?childId=${c.id}&date=${today}`);
-        } else {
-          router.push("/children/new");
-        }
-      })
-      .then((r) => r?.json())
-      .then((data) => setLogs(data || []))
+          Promise.all([
+            fetch(`/api/daily-logs?childId=${c.id}&date=${today}`).then(r => r.json()),
+            fetch(`/api/milestones?childId=${c.id}`).then(r => r.json()),
+          ]).then(([logsData, milestonesData]) => {
+            setLogs(logsData || []);
+            const cats = ["motor", "language", "cognitive", "social"];
+            const labels = ["Motor Beceriler", "Dil & İletişim", "Bilişsel", "Sosyal"];
+            const progress = cats.map((cat, i) => {
+              const catMils = milestonesData.filter((m: { category: string; achievedAt: string | null }) => m.category === cat);
+              return { category: labels[i], achieved: catMils.filter((m: { achievedAt: string | null }) => m.achievedAt).length, total: catMils.length };
+            });
+            setMilestones(progress);
+          });
       .catch(() => {});
   }, []);
+
+  const sendAi = async () => {
+    if (!aiInput.trim() || !child) return;
+    setAiLoading(true);
+    try {
+      const res = await fetch("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: [{ role: "user", content: aiInput }], childContext: { name: child.name, ageMonths: age ? parseInt(age) : 0 } }) });
+      const d = await res.json();
+      setAiReply(d.reply || "Yanıt alınamadı.");
+    } catch { setAiReply("Bağlantı hatası."); }
+    setAiLoading(false);
+    setAiInput("");
+  };
 
   const age = child ? getAge(new Date(child.birthDate)) : null;
 
@@ -279,17 +393,23 @@ export default function DashboardPage() {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="font-serif text-2xl text-on-surface">
-                    —
+                    {milestones.filter(m => m.total > 0).length > 0
+                      ? Math.round(milestones.reduce((s, m) => s + (m.total > 0 ? m.achieved / m.total : 0), 0) / Math.max(milestones.filter(m => m.total > 0).length, 1) * 100)
+                      : "—"}
                   </span>
                   <span className="text-xs text-on-surface-variant">
-                    Yakında
+                    {milestones.filter(m => m.total > 0).length > 0 ? "%" : ""}
                   </span>
                 </div>
               </div>
               <div className="flex-1 w-full space-y-3">
-                <p className="text-sm text-on-surface-variant text-center py-2">
-                  Gelişim takibi Faz 3&apos;te aktif olacak.
-                </p>
+                {milestones.some(m => m.total > 0) ? milestones.map((m) => (
+                  <ProgressBar key={m.category} label={m.category} value={m.total > 0 ? Math.round((m.achieved / m.total) * 100) : 0} />
+                )) : (
+                  <p className="text-sm text-on-surface-variant text-center py-2">
+                    Gelişim verisi için çocuk profili oluşturun.
+                  </p>
+                )}
               </div>
             </div>
           </article>
@@ -336,6 +456,26 @@ export default function DashboardPage() {
               Aşı takvimi çocuk profili oluşturulduktan sonra görüntülenecek.
             </p>
           </aside>
+
+          {child && (
+          <aside className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant/10">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles size={20} className="text-primary" />
+              <h3 className="font-serif text-lg text-on-surface">AI Asistan</h3>
+            </div>
+            {aiReply && <p className="text-sm text-on-surface leading-relaxed bg-surface-container-low rounded-xl p-3 mb-3">{aiReply}</p>}
+            <div className="flex gap-2">
+              <input type="text" value={aiInput} onChange={(e) => setAiInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendAi()}
+                placeholder="Bir soru sor..." disabled={aiLoading}
+                className="flex-1 px-4 py-2.5 rounded-full border border-outline-variant bg-surface-container-lowest text-sm focus:outline-none focus:border-primary" />
+              <button onClick={sendAi} disabled={aiLoading || !aiInput.trim()}
+                className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center hover:bg-surface-tint disabled:opacity-50">
+                <Send size={16} />
+              </button>
+            </div>
+          </aside>
+          )}
         </div>
       </div>
     </div>
