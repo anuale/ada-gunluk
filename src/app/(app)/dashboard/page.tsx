@@ -148,25 +148,32 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
     fetch("/api/children")
       .then((r) => r.json())
       .then((data) => {
         if (data.children?.length > 0) {
           const c = data.children[0];
           setChild(c);
-          Promise.all([
+          return Promise.all([
             fetch(`/api/daily-logs?childId=${c.id}&date=${today}`).then(r => r.json()),
             fetch(`/api/milestones?childId=${c.id}`).then(r => r.json()),
-          ]).then(([logsData, milestonesData]) => {
-            setLogs(logsData || []);
-            const cats = ["motor", "language", "cognitive", "social"];
-            const labels = ["Motor Beceriler", "Dil & İletişim", "Bilişsel", "Sosyal"];
-            const progress = cats.map((cat, i) => {
-              const catMils = milestonesData.filter((m: { category: string; achievedAt: string | null }) => m.category === cat);
-              return { category: labels[i], achieved: catMils.filter((m: { achievedAt: string | null }) => m.achievedAt).length, total: catMils.length };
-            });
-            setMilestones(progress);
-          });
+          ]);
+        }
+        return null;
+      })
+      .then((result) => {
+        if (!result) return;
+        const [logsData, milestonesData] = result;
+        setLogs(logsData || []);
+        const cats = ["motor", "language", "cognitive", "social"];
+        const labels = ["Motor Beceriler", "Dil & İletişim", "Bilişsel", "Sosyal"];
+        const progress = cats.map((cat, i) => {
+          const catMils = (milestonesData || []).filter((m: { category: string; achievedAt: string | null }) => m.category === cat);
+          return { category: labels[i], achieved: catMils.filter((m: { achievedAt: string | null }) => m.achievedAt).length, total: catMils.length };
+        });
+        setMilestones(progress);
+      })
       .catch(() => {});
   }, []);
 
