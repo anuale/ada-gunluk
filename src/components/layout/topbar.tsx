@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { Bell, UserCircle, Menu, X } from "lucide-react";
+import { Bell, UserCircle, Menu, X, LogOut, UserPlus } from "lucide-react";
 import {
   House,
   CalendarDays,
@@ -28,6 +28,7 @@ const mobileNavItems = [
 export function TopBar() {
   const { data: session } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const pathname = usePathname();
 
   return (
@@ -53,12 +54,33 @@ export function TopBar() {
           <button className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors active:scale-95">
             <Bell size={20} />
           </button>
+          <div className="relative">
           <button
-            onClick={() => { if (confirm("Oturumu kapatmak istediğinize emin misiniz?")) signOut({ callbackUrl: "/login" }); }}
+            onClick={() => setShowUserMenu(!showUserMenu)}
             className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors active:scale-95"
           >
             <UserCircle size={20} />
           </button>
+          {showUserMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+              <div className="absolute right-0 top-11 z-50 bg-surface rounded-2xl shadow-lg border border-outline-variant/10 p-2 min-w-[180px]">
+                <button
+                  onClick={() => { setShowUserMenu(false); signOut({ callbackUrl: "/login" }); }}
+                  className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container-low transition-colors"
+                >
+                  <LogOut size={16} /> Oturumu Kapat
+                </button>
+                <button
+                  onClick={() => { setShowUserMenu(false); signOut({ callbackUrl: "/login" }); }}
+                  className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container-low transition-colors"
+                >
+                  <UserPlus size={16} /> Kullanıcı Değiştir
+                </button>
+              </div>
+            </>
+          )}
+          </div>
         </div>
       </header>
 
@@ -95,12 +117,18 @@ export function TopBar() {
                 );
               })}
             </nav>
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-outline-variant/10">
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-outline-variant/10 space-y-2">
               <button
-                onClick={() => { setMenuOpen(false); if (confirm("Oturumu kapatmak istediğinize emin misiniz?")) signOut({ callbackUrl: "/login" }); }}
+                onClick={() => { setMenuOpen(false); signOut({ callbackUrl: "/login" }); }}
                 className="w-full py-3 rounded-full border border-outline-variant text-on-surface-variant text-sm font-medium hover:bg-surface-container-low transition-colors"
               >
-                Çıkış Yap
+                <LogOut size={14} className="inline mr-1" /> Oturumu Kapat
+              </button>
+              <button
+                onClick={() => { setMenuOpen(false); signOut({ callbackUrl: "/login" }); }}
+                className="w-full py-3 rounded-full border border-outline-variant text-on-surface-variant text-sm font-medium hover:bg-surface-container-low transition-colors"
+              >
+                <UserPlus size={14} className="inline mr-1" /> Kullanıcı Değiştir
               </button>
             </div>
           </div>
