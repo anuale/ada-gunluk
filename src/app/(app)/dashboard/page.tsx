@@ -544,6 +544,21 @@ function SummaryItem({
   );
 }
 
+function ProgressBar({ label, value }: { label: string; value: number }) {
+  const color = value >= 80 ? "bg-primary" : value >= 50 ? "bg-primary/70" : "bg-amber-400";
+  return (
+    <div>
+      <div className="flex justify-between mb-1">
+        <span className="text-xs font-medium text-on-surface">{label}</span>
+        <span className="text-xs text-on-surface-variant">{value}%</span>
+      </div>
+      <div className="w-full bg-surface-container-highest rounded-full h-2">
+        <div className={`${color} h-2 rounded-full transition-all`} style={{ width: `${value}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function getAge(birthDate: Date): string {
   const now = new Date();
   let years = now.getFullYear() - birthDate.getFullYear();
