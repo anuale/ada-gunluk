@@ -176,7 +176,7 @@ export default function NotesPage() {
 
       {/* Note Form Modal */}
       {showForm && editingNote && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 backdrop-blur-sm pb-[calc(env(safe-area-inset-bottom,1rem)+4.5rem)] md:pb-0">
           <div className="bg-surface w-full max-w-lg rounded-t-2xl md:rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto animate-slide-up">
             <div className="sticky top-0 bg-surface rounded-t-2xl border-b border-outline-variant/10 p-4 flex items-center justify-between z-10">
               <h3 className="font-serif text-lg text-on-surface">

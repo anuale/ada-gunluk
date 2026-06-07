@@ -522,7 +522,7 @@ export default function DevelopmentPage() {
 
           {/* Growth Form Modal */}
           {showGrowthForm && (
-            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 backdrop-blur-sm">
+            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 backdrop-blur-sm pb-[calc(env(safe-area-inset-bottom,1rem)+4.5rem)] md:pb-0">
               <div className="bg-surface w-full max-w-md rounded-t-2xl md:rounded-2xl shadow-xl p-4 space-y-4 animate-slide-up">
                 <div className="flex items-center justify-between">
                   <h3 className="font-serif text-lg text-on-surface">Ölçüm Ekle</h3>
@@ -782,7 +782,7 @@ export default function DevelopmentPage() {
           </div>
 
           {showDoctorForm && (
-            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 backdrop-blur-sm">
+            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 backdrop-blur-sm pb-[calc(env(safe-area-inset-bottom,1rem)+4.5rem)] md:pb-0">
               <div className="bg-surface w-full max-w-md rounded-t-2xl md:rounded-2xl shadow-xl p-4 space-y-4 animate-slide-up">
                 <div className="flex items-center justify-between">
                   <h3 className="font-serif text-lg text-on-surface">Doktor Ziyareti</h3>
