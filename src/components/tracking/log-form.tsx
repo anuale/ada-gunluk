@@ -41,11 +41,9 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
   // Feeding state
   const [feedType, setFeedType] = useState<"breast" | "formula" | "solids">("breast");
   const [feedAmount, setFeedAmount] = useState("");
-  const [leftDuration, setLeftDuration] = useState(0);
-  const [rightDuration, setRightDuration] = useState(0);
+  const [feedStartTime, setFeedStartTime] = useState("");
+  const [feedEndTime, setFeedEndTime] = useState("");
   const [breastSide, setBreastSide] = useState<"left" | "right">("left");
-  const [breastMinutes, setBreastMinutes] = useState("");
-  const [breastSeconds, setBreastSeconds] = useState("");
 
   // Sleep state
   const [sleepDuration, setSleepDuration] = useState(0);
@@ -86,8 +84,14 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
         if (ft === "formula" || ft === "solids") {
           setFeedAmount(String(d.amount ?? ""));
         } else {
-          setLeftDuration((d.leftDuration as number) || 0);
-          setRightDuration((d.rightDuration as number) || 0);
+          if (existingLog.startedAt) {
+            const s = new Date(existingLog.startedAt);
+            setFeedStartTime(`${String(s.getHours()).padStart(2, "0")}:${String(s.getMinutes()).padStart(2, "0")}`);
+          }
+          if (existingLog.endedAt) {
+            const e = new Date(existingLog.endedAt);
+            setFeedEndTime(`${String(e.getHours()).padStart(2, "0")}:${String(e.getMinutes()).padStart(2, "0")}`);
+          }
         }
       } else if (type === "sleep") {
         const dur = existingLog.startedAt && existingLog.endedAt
@@ -117,17 +121,6 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
     setLogDate(dateStr);
   }, [existingLog, type]);
 
-  const applyManualBreastTime = () => {
-    const mins = parseInt(breastMinutes) || 0;
-    const secs = parseInt(breastSeconds) || 0;
-    const ms = (mins * 60 + secs) * 1000;
-    if (ms === 0) return;
-    if (breastSide === "left") setLeftDuration(leftDuration + ms);
-    else setRightDuration(rightDuration + ms);
-    setBreastMinutes("");
-    setBreastSeconds("");
-  };
-
   const applyManualSleepTime = () => {
     const hrs = parseInt(sleepHours) || 0;
     const mins = parseInt(sleepMins) || 0;
@@ -146,12 +139,13 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
     let endedAt: string | undefined;
 
     if (type === "feeding") {
-      logData = {
-        feedType,
-        amount: feedAmount ? Number(feedAmount) : null,
-        leftDuration,
-        rightDuration,
-      };
+      logData = { feedType, amount: feedAmount ? Number(feedAmount) : null };
+      if (feedStartTime) {
+        startedAt = new Date(`${logDate}T${feedStartTime}:00`).toISOString();
+      }
+      if (feedEndTime) {
+        endedAt = new Date(`${logDate}T${feedEndTime}:00`).toISOString();
+      }
     } else if (type === "sleep") {
       const now = new Date(`${logDate}T${new Date().toTimeString().slice(0, 8)}`);
       endedAt = now.toISOString();
@@ -264,68 +258,28 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
               {feedType === "breast" && (
                 <div className="space-y-3">
                   <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setBreastSide("left")}
-                      className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${
-                        breastSide === "left"
-                          ? "bg-feeding text-feeding-text border-2 border-feeding-text/30"
-                          : "bg-surface-container-low text-on-surface-variant"
-                      }`}
-                    >
-                      Sol Meme
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBreastSide("right")}
-                      className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${
-                        breastSide === "right"
-                          ? "bg-feeding text-feeding-text border-2 border-feeding-text/30"
-                          : "bg-surface-container-low text-on-surface-variant"
-                      }`}
-                    >
-                      Sağ Meme
-                    </button>
+                    <button type="button" onClick={() => setBreastSide("left")}
+                      className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${breastSide === "left" ? "bg-feeding text-feeding-text border-2 border-feeding-text/30" : "bg-surface-container-low text-on-surface-variant"}`}>
+                      Sol Meme</button>
+                    <button type="button" onClick={() => setBreastSide("right")}
+                      className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${breastSide === "right" ? "bg-feeding text-feeding-text border-2 border-feeding-text/30" : "bg-surface-container-low text-on-surface-variant"}`}>
+                      Sağ Meme</button>
                   </div>
-                  <Timer
-                    label={breastSide === "left" ? "Sol" : "Sağ"}
-                    onStop={(ms) => {
-                      if (breastSide === "left") setLeftDuration(leftDuration + ms);
-                      else setRightDuration(rightDuration + ms);
-                    }}
-                  />
-                  <div className="flex items-center gap-2 text-xs text-on-surface-variant">
-                    <span>veya süre gir:</span>
-                    <input
-                      type="number"
-                      value={breastMinutes}
-                      onChange={(e) => setBreastMinutes(e.target.value)}
-                      placeholder="dk"
-                      className="w-14 px-2 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-sm"
-                      min="0"
-                    />
-                    <span>dk</span>
-                    <input
-                      type="number"
-                      value={breastSeconds}
-                      onChange={(e) => setBreastSeconds(e.target.value)}
-                      placeholder="sn"
-                      className="w-14 px-2 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-sm"
-                      min="0"
-                      max="59"
-                    />
-                    <span>sn</span>
-                    <button
-                      type="button"
-                      onClick={applyManualBreastTime}
-                      className="px-2.5 py-1.5 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container text-xs font-medium"
-                    >
-                      Ekle
-                    </button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-on-surface-variant mb-1">Başlangıç</label>
+                      <input type="time" value={feedStartTime} onChange={e => setFeedStartTime(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl border border-outline-variant bg-surface-container-lowest text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-on-surface-variant mb-1">Bitiş</label>
+                      <input type="time" value={feedEndTime} onChange={e => setFeedEndTime(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl border border-outline-variant bg-surface-container-lowest text-sm" />
+                    </div>
                   </div>
-                  {(leftDuration > 0 || rightDuration > 0) && (
+                  {feedStartTime && feedEndTime && (
                     <p className="text-xs text-on-surface-variant">
-                      Sol: {Math.floor(leftDuration / 60000)} dk • Sağ: {Math.floor(rightDuration / 60000)} dk
+                      Süre: {(() => { const [sh, sm] = feedStartTime.split(":").map(Number); const [eh, em] = feedEndTime.split(":").map(Number); const mins = (eh * 60 + em) - (sh * 60 + sm); return mins > 0 ? `${mins} dk` : "—"; })()}
                     </p>
                   )}
                 </div>

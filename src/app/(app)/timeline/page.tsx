@@ -182,8 +182,8 @@ function TimelinePageInner() {
             {ft === "breast" ? (
               <>
                 <span>Anne Sütü</span>
-                <span>Sol: {Math.floor(((d.leftDuration as number) || 0) / 60000)} dk</span>
-                <span>Sağ: {Math.floor(((d.rightDuration as number) || 0) / 60000)} dk</span>
+                {log.startedAt && <span>{new Date(log.startedAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}</span>}
+                {log.endedAt && <span>- {new Date(log.endedAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}</span>}
               </>
             ) : ft === "formula" ? (
               <span>Formül • {(d.amount as string) || "—"} ml</span>

@@ -101,20 +101,6 @@ export function BottomNav() {
           </Link>
         );
       })}
-
-      <Link
-        href="/timeline?log=new"
-        className="flex flex-col items-center justify-center -mt-5"
-      >
-        <div className="w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg active:scale-90 transition-transform">
-          <Plus size={24} />
-        </div>
-        <span className="text-[10px] font-medium text-on-surface-variant mt-0.5">
-          Kayıt
-        </span>
-      </Link>
-
-      {mobileItems.length > 4 && mobileItems.slice(2).map(() => null)}
     </nav>
   );
 }
