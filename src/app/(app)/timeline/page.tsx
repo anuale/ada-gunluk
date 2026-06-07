@@ -254,7 +254,7 @@ function TimelinePageInner() {
   };
 
   const groupedLogs = logs.reduce((acc, log) => {
-    const label = new Date(log.startedAt).toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    const label = new Date(log.logDate).toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     if (!acc[label]) acc[label] = [];
     acc[label].push(log);
     return acc;
