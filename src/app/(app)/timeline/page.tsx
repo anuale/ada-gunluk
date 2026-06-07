@@ -182,8 +182,22 @@ function TimelinePageInner() {
             {ft === "breast" ? (
               <>
                 <span>Anne Sütü</span>
-                {log.startedAt && <span>{new Date(log.startedAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}</span>}
-                {log.endedAt && <span>- {new Date(log.endedAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}</span>}
+                {(d.entries as Array<{ side: string; startTime: string; endTime: string }>)?.length > 0 ? (
+                  (d.entries as Array<{ side: string; startTime: string; endTime: string }>).map((e, i) => {
+                    const [sh, sm] = e.startTime.split(":").map(Number);
+                    const [eh, em] = e.endTime.split(":").map(Number);
+                    const mins = (eh * 60 + em) - (sh * 60 + sm);
+                    return <span key={i}>{e.side === "left" ? "Sol" : "Sağ"}: {e.startTime}-{e.endTime} ({mins} dk)</span>;
+                  })
+                ) : (log.startedAt && log.endedAt) ? (
+                  <span>{new Date(log.startedAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })} - {new Date(log.endedAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}</span>
+                ) : (
+                  <>
+                    {(d.leftDuration as number) > 0 && <span>Sol: {Math.floor((d.leftDuration as number) / 60000)} dk</span>}
+                    {(d.rightDuration as number) > 0 && <span>Sağ: {Math.floor((d.rightDuration as number) / 60000)} dk</span>}
+                    {!(d.leftDuration as number) && !(d.rightDuration as number) && log.startedAt && <span>{new Date(log.startedAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}</span>}
+                  </>
+                )}
               </>
             ) : ft === "formula" ? (
               <span>Formül • {(d.amount as string) || "—"} ml</span>

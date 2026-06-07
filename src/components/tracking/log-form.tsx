@@ -44,6 +44,7 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
   const [feedStartTime, setFeedStartTime] = useState("");
   const [feedEndTime, setFeedEndTime] = useState("");
   const [breastSide, setBreastSide] = useState<"left" | "right">("left");
+  const [breastEntries, setBreastEntries] = useState<{ side: string; startTime: string; endTime: string }[]>([]);
 
   // Sleep state
   const [sleepDuration, setSleepDuration] = useState(0);
@@ -84,13 +85,15 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
         if (ft === "formula" || ft === "solids") {
           setFeedAmount(String(d.amount ?? ""));
         } else {
-          if (existingLog.startedAt) {
+          if ((d.entries as Array<{ side: string; startTime: string; endTime: string }>)?.length) {
+            setBreastEntries(d.entries as Array<{ side: string; startTime: string; endTime: string }>);
+          } else if (existingLog.startedAt) {
             const s = new Date(existingLog.startedAt);
-            setFeedStartTime(`${String(s.getHours()).padStart(2, "0")}:${String(s.getMinutes()).padStart(2, "0")}`);
-          }
-          if (existingLog.endedAt) {
-            const e = new Date(existingLog.endedAt);
-            setFeedEndTime(`${String(e.getHours()).padStart(2, "0")}:${String(e.getMinutes()).padStart(2, "0")}`);
+            const start = `${String(s.getHours()).padStart(2, "0")}:${String(s.getMinutes()).padStart(2, "0")}`;
+            const e = existingLog.endedAt ? new Date(existingLog.endedAt) : null;
+            const end = e ? `${String(e.getHours()).padStart(2, "0")}:${String(e.getMinutes()).padStart(2, "0")}` : "";
+            const side = (d.side as string) || "left";
+            setBreastEntries([{ side, startTime: start, endTime: end }]);
           }
         }
       } else if (type === "sleep") {
@@ -139,12 +142,13 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
     let endedAt: string | undefined;
 
     if (type === "feeding") {
-      logData = { feedType, amount: feedAmount ? Number(feedAmount) : null };
-      if (feedStartTime) {
+      logData = { feedType, amount: feedAmount ? Number(feedAmount) : null, entries: breastEntries, side: breastSide };
+      if (breastEntries.length > 0) {
+        startedAt = new Date(`${logDate}T${breastEntries[0].startTime}:00`).toISOString();
+        endedAt = new Date(`${logDate}T${breastEntries[breastEntries.length - 1].endTime}:00`).toISOString();
+      } else if (feedStartTime) {
         startedAt = new Date(`${logDate}T${feedStartTime}:00`).toISOString();
-      }
-      if (feedEndTime) {
-        endedAt = new Date(`${logDate}T${feedEndTime}:00`).toISOString();
+        if (feedEndTime) endedAt = new Date(`${logDate}T${feedEndTime}:00`).toISOString();
       }
     } else if (type === "sleep") {
       const now = new Date(`${logDate}T${new Date().toTimeString().slice(0, 8)}`);
@@ -277,10 +281,30 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
                         className="w-full px-3 py-2.5 rounded-xl border border-outline-variant bg-surface-container-lowest text-sm" />
                     </div>
                   </div>
-                  {feedStartTime && feedEndTime && (
-                    <p className="text-xs text-on-surface-variant">
-                      Süre: {(() => { const [sh, sm] = feedStartTime.split(":").map(Number); const [eh, em] = feedEndTime.split(":").map(Number); const mins = (eh * 60 + em) - (sh * 60 + sm); return mins > 0 ? `${mins} dk` : "—"; })()}
-                    </p>
+                  <button type="button" onClick={() => {
+                    if (!feedStartTime || !feedEndTime) return;
+                    setBreastEntries(prev => [...prev, { side: breastSide, startTime: feedStartTime, endTime: feedEndTime }]);
+                    setFeedStartTime(""); setFeedEndTime("");
+                  }} disabled={!feedStartTime || !feedEndTime}
+                    className="w-full py-2 rounded-full bg-feeding text-feeding-text text-sm font-medium hover:opacity-80 transition-opacity disabled:opacity-30">
+                    + {breastSide === "left" ? "Sol" : "Sağ"} Meme Ekle
+                  </button>
+                  {breastEntries.length > 0 && (
+                    <div className="space-y-1.5 p-3 bg-surface-container-low rounded-xl">
+                      {breastEntries.map((entry, i) => {
+                        const [sh, sm] = entry.startTime.split(":").map(Number);
+                        const [eh, em] = entry.endTime.split(":").map(Number);
+                        const mins = (eh * 60 + em) - (sh * 60 + sm);
+                        return (
+                          <div key={i} className="flex items-center justify-between text-xs text-on-surface">
+                            <span>{entry.side === "left" ? "Sol" : "Sağ"} Meme: {entry.startTime} - {entry.endTime} ({mins} dk)</span>
+                            <button type="button" onClick={() => setBreastEntries(prev => prev.filter((_, j) => j !== i))}
+                              className="text-error/60 hover:text-error ml-2">✕</button>
+                          </div>
+                        );
+                      })}
+                      <p className="text-xs text-on-surface-variant mt-1">Toplam: {breastEntries.reduce((s, e) => { const [sh, sm] = e.startTime.split(":").map(Number); const [eh, em] = e.endTime.split(":").map(Number); return s + (eh * 60 + em) - (sh * 60 + sm); }, 0)} dk</p>
+                    </div>
                   )}
                 </div>
               )}
