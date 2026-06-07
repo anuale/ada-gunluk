@@ -1,6 +1,6 @@
 services:
   ada-gunluk:
-    image: ghcr.io/anuale/ada-gunluk:8594fc8
+    image: ghcr.io/anuale/ada-gunluk:51b45fc
     pull_policy: always
     container_name: ada-gunluk
     expose:
