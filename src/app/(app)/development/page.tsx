@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   TrendingUp, Ruler, Syringe, Smile, Stethoscope,
-  Check, Plus, X, Circle, UserPlus, Eye, Pencil, Trash2,
+  Check, Plus, X, Circle, UserPlus, Eye, Pencil, Trash2, Sparkles,
 } from "lucide-react";
 import {
   LineChart,
@@ -16,8 +16,9 @@ import {
 } from "recharts";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { leaps, type LeapData } from "@/lib/data/leaps";
 
-type Tab = "milestones" | "growth" | "vaccines" | "teeth" | "doctor" | "observations";
+type Tab = "milestones" | "growth" | "vaccines" | "teeth" | "doctor" | "observations" | "leaps";
 
 interface Child {
   id: string;
@@ -76,6 +77,7 @@ const tabs: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: "teeth", label: "Diş", icon: Smile },
   { key: "doctor", label: "Doktor", icon: Stethoscope },
   { key: "observations", label: "Gözlem", icon: Eye },
+  { key: "leaps", label: "Atak", icon: Sparkles },
 ];
 
 const categories: { key: string; label: string }[] = [
@@ -878,6 +880,65 @@ export default function DevelopmentPage() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* LEAPS TAB */}
+      {activeTab === "leaps" && (
+        <div className="space-y-4">
+          <div className="bg-surface rounded-2xl p-5 shadow-sm border border-outline-variant/10">
+            <h3 className="font-serif text-lg text-on-surface mb-1">Atak Haftaları (The Wonder Weeks)</h3>
+            <p className="text-xs text-on-surface-variant">Bebeğinizin 10 büyük gelişimsel sıçraması ve yapmanız gerekenler</p>
+          </div>
+
+          {leaps.map((leap) => {
+            const childAgeWeeks = Math.floor((new Date().getTime() - new Date(child!.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 7));
+            const isCurrent = childAgeWeeks >= leap.week - 1 && childAgeWeeks <= leap.week + 3;
+            const isPast = childAgeWeeks > leap.week + 3;
+            const isFuture = childAgeWeeks < leap.week - 1;
+
+            return (
+            <div key={leap.week} className={`bg-surface rounded-2xl p-5 shadow-sm border transition-all ${isCurrent ? "border-primary/50 bg-primary-container/5" : isPast ? "border-outline-variant/10 opacity-60" : "border-outline-variant/10"}`}>
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h4 className="font-serif text-lg text-on-surface">{leap.week}. Hafta: {leap.title}</h4>
+                  <p className="text-xs text-on-surface-variant">{leap.ageLabel} • {leap.durationDays} sürer</p>
+                </div>
+                {isCurrent && <span className="text-xs bg-primary text-on-primary px-2.5 py-1 rounded-full font-medium">Şu Anda!</span>}
+                {isPast && <span className="text-xs bg-surface-container-high text-on-surface-variant px-2.5 py-1 rounded-full">✓ Tamamlandı</span>}
+              </div>
+
+              <p className="text-sm text-on-surface-variant mb-4">{leap.world}</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <h5 className="text-xs font-semibold text-amber-700 uppercase tracking-wider">🔔 Belirtiler</h5>
+                  <ul className="space-y-1">
+                    {leap.signs.map((s, i) => <li key={i} className="text-xs text-on-surface-variant flex items-start gap-1"><span className="text-amber-500 mt-0.5">•</span>{s}</li>)}
+                  </ul>
+                </div>
+                <div className="space-y-2">
+                  <h5 className="text-xs font-semibold text-primary uppercase tracking-wider">✨ Yeni Beceriler</h5>
+                  <ul className="space-y-1">
+                    {leap.skills.map((s, i) => <li key={i} className="text-xs text-on-surface-variant flex items-start gap-1"><span className="text-primary mt-0.5">•</span>{s}</li>)}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-4 p-4 bg-surface-container-low rounded-xl space-y-3">
+                <h5 className="text-xs font-semibold text-on-surface uppercase tracking-wider">🎯 Aktiviteler</h5>
+                <div className="flex flex-wrap gap-1.5">
+                  {leap.activities.map((a, i) => <span key={i} className="text-xs bg-surface text-on-surface-variant px-2.5 py-1 rounded-full border border-outline-variant/20">{a}</span>)}
+                </div>
+              </div>
+
+              <div className="mt-3 space-y-1">
+                <h5 className="text-xs font-semibold text-on-surface uppercase tracking-wider">💡 İpuçları</h5>
+                {leap.tips.map((t, i) => <p key={i} className="text-xs text-on-surface-variant">• {t}</p>)}
+              </div>
+            </div>
+            );
+          })}
         </div>
       )}
     </div>
