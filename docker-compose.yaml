@@ -14,7 +14,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@ada-db:5432/ada_gunluk}
       - AUTH_SECRET=${AUTH_SECRET}
-      - AUTH_URL=${AUTH_URL:-https://ada.alnuai.com}
+      - AUTH_URL=https://ada.alnuai.com
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
     restart: unless-stopped
     networks:
