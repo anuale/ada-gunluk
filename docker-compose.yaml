@@ -5,11 +5,6 @@ services:
     container_name: ada-gunluk
     expose:
       - "3000"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.ada-gunluk.rule=Host(`ada.alnuai.com`)"
-      - "traefik.http.routers.ada-gunluk.entrypoints=web"
-      - "traefik.http.services.ada-gunluk.loadbalancer.server.port=3000"
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@ada-db:5432/ada_gunluk}
       - AUTH_SECRET=${AUTH_SECRET}
