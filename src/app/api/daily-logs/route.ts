@@ -33,7 +33,7 @@ export async function GET(request: Request) {
 
   const logs = await prisma.dailyLog.findMany({
     where,
-    orderBy: { startedAt: "asc" },
+    orderBy: { startedAt: "desc" },
     include: { user: { select: { name: true } } },
   });
 
