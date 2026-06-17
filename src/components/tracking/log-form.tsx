@@ -212,9 +212,9 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 backdrop-blur-sm pb-[calc(env(safe-area-inset-bottom,1rem)+4.5rem)] md:pb-0">
-      <div className="bg-surface w-full max-w-md rounded-t-2xl md:rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto animate-slide-up">
-        <div className="sticky top-0 bg-surface rounded-t-2xl border-b border-outline-variant/10 p-4 flex items-center justify-between z-10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 md:p-0">
+      <div className="bg-surface w-full max-w-md rounded-2xl shadow-xl max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="bg-surface rounded-t-2xl border-b border-outline-variant/10 p-4 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <div className={`w-9 h-9 rounded-full ${c.color} flex items-center justify-center`}>
               <Icon size={18} />
@@ -229,7 +229,7 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
           </button>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 overflow-y-auto">
           <div>
             <label className="block text-sm font-medium text-on-surface mb-1.5">Tarih</label>
             <input
