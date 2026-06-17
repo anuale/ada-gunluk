@@ -212,8 +212,8 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="bg-surface w-full max-w-md rounded-2xl shadow-xl max-h-[450px] sm:max-h-[80vh] overflow-hidden flex flex-col mt-auto">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-surface w-full max-w-md rounded-2xl shadow-xl max-h-[65dvh] sm:max-h-[80vh] overflow-hidden flex flex-col mt-auto" onClick={(e) => e.stopPropagation()}>
         <div className="bg-surface rounded-t-2xl border-b border-outline-variant/10 p-4 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <div className={`w-9 h-9 rounded-full ${c.color} flex items-center justify-center`}>
