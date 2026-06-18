@@ -6,6 +6,8 @@ interface ChatMessage {
   content: string;
 }
 
+const DEEPSEEK_TIMEOUT_MS = 45_000;
+
 export async function deepseekChat(
   messages: ChatMessage[],
   options?: {
@@ -18,28 +20,43 @@ export async function deepseekChat(
     return "AI asistanı henüz yapılandırılmadı. Lütfen DEEPSEEK_API_KEY çevre değişkenini ayarlayın.";
   }
 
-  const res = await fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: options?.model || "deepseek-chat",
-      messages,
-      temperature: options?.temperature ?? 0.7,
-      max_tokens: options?.maxTokens ?? 1024,
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), DEEPSEEK_TIMEOUT_MS);
 
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("DeepSeek API error:", err);
+  try {
+    const res = await fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: options?.model || "deepseek-chat",
+        messages,
+        temperature: options?.temperature ?? 0.7,
+        max_tokens: options?.maxTokens ?? 1024,
+      }),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("DeepSeek API error:", err);
+      return "Üzgünüm, şu anda yanıt alamıyorum. Lütfen biraz sonra tekrar deneyin.";
+    }
+
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || "Bir yanıt alınamadı.";
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      console.error("DeepSeek API timeout");
+    } else {
+      console.error("DeepSeek API fetch error:", error);
+    }
     return "Üzgünüm, şu anda yanıt alamıyorum. Lütfen biraz sonra tekrar deneyin.";
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || "Bir yanıt alınamadı.";
 }
 
 export const BOOK_KNOWLEDGE = `
