@@ -124,6 +124,16 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
     setLogDate(dateStr);
   }, [existingLog, type]);
 
+  useEffect(() => {
+    if (isEdit) return;
+    const checkDate = () => {
+      const today = new Date().toISOString().split("T")[0];
+      setLogDate((prev) => (prev !== today ? today : prev));
+    };
+    const interval = setInterval(checkDate, 30_000);
+    return () => clearInterval(interval);
+  }, [isEdit]);
+
   const applyManualSleepTime = () => {
     const hrs = parseInt(sleepHours) || 0;
     const mins = parseInt(sleepMins) || 0;
