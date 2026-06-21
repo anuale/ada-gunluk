@@ -1,4 +1,4 @@
-const CACHE_NAME = "ada-gunluk-v1";
+const CACHE_NAME = "ada-gunluk-v2";
 const OFFLINE_URL = "/login";
 
 self.addEventListener("install", (event) => {
