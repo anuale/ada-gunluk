@@ -1,7 +1,8 @@
 services:
   ada-gunluk:
-    image: ghcr.io/anuale/ada-gunluk:91d716f
-    pull_policy: always
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: ada-gunluk
     expose:
       - "3000"

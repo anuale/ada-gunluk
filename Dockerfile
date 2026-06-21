@@ -2,6 +2,10 @@ ARG NODE_VERSION=22
 
 FROM node:${NODE_VERSION}-alpine AS builder
 WORKDIR /app
+
+ARG NODE_ENV
+ENV NODE_ENV=development
+
 RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json ./
 RUN npm ci
