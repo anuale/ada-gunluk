@@ -11,12 +11,6 @@ services:
       - AUTH_URL=https://ada.alnuai.com
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/login',r=>{process.exit(r.statusCode===200?0:1)})\""]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 15s
     networks:
       - ada-network
       - coolify
