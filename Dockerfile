@@ -1,15 +1,15 @@
 ARG NODE_VERSION=22
 
-FROM node:${NODE_VERSION}-bookworm-slim AS builder
+FROM node:${NODE_VERSION}-alpine AS builder
 WORKDIR /app
-ENV NODE_ENV=development
+RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 RUN npx prisma generate
-RUN npm run build 2>&1; EC=$?; echo "BUILD EXIT=$EC"; exit $EC
+RUN npm run build
 
-FROM node:${NODE_VERSION}-bookworm-slim AS runner
+FROM node:${NODE_VERSION}-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
