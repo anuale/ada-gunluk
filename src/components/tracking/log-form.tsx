@@ -281,6 +281,7 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
                   </div>
 
                   <div className="p-3 bg-surface-container-low rounded-xl">
+                    <p className="text-xs text-feeding-text font-bold mb-1">⏱ Kronometre Test</p>
                     <Timer
                       label={`${breastSide === "left" ? "Sol" : "Sağ"} Meme`}
                       onStop={(ms) => {
