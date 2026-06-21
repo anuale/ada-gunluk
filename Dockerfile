@@ -1,16 +1,15 @@
 ARG NODE_VERSION=22
 
-FROM node:${NODE_VERSION}-slim AS builder
+FROM node:${NODE_VERSION}-alpine AS builder
 WORKDIR /app
-ENV NODE_ENV=development
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 RUN npx prisma generate
 RUN npm run build
 
-FROM node:${NODE_VERSION}-slim AS runner
+FROM node:${NODE_VERSION}-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
