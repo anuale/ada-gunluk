@@ -45,7 +45,6 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
   const [feedEndTime, setFeedEndTime] = useState("");
   const [breastSide, setBreastSide] = useState<"left" | "right">("left");
   const [breastEntries, setBreastEntries] = useState<{ side: string; startTime: string; endTime: string }[]>([]);
-  const [feedingTimerMs, setFeedingTimerMs] = useState(0);
 
   // Sleep state
   const [sleepDuration, setSleepDuration] = useState(0);
@@ -143,16 +142,6 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
     setSleepDuration(sleepDuration + ms);
     setSleepHours("");
     setSleepMins("");
-  };
-
-  const handleFeedTimerStop = (durationMs: number) => {
-    setFeedingTimerMs(durationMs);
-    const now = new Date();
-    const start = new Date(now.getTime() - durationMs);
-    const fmt = (d: Date) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-    const startTime = fmt(start);
-    const endTime = fmt(now);
-    setBreastEntries((prev) => [...prev, { side: breastSide, startTime, endTime }]);
   };
 
   const handleSave = async () => {
@@ -292,17 +281,15 @@ export function LogForm({ type, childId, onClose, onSaved, existingLog }: LogFor
                   </div>
 
                   <div className="p-3 bg-surface-container-low rounded-xl">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs font-medium text-on-surface-variant">
-                        {breastSide === "left" ? "Sol" : "Sağ"} Meme Kronometre
-                      </span>
-                      {feedingTimerMs > 0 && (
-                        <span className="text-xs text-on-surface-variant">
-                          Son: {Math.round(feedingTimerMs / 60000)} dk
-                        </span>
-                      )}
-                    </div>
-                    <Timer onStop={handleFeedTimerStop} />
+                    <Timer
+                      label={`${breastSide === "left" ? "Sol" : "Sağ"} Meme`}
+                      onStop={(ms) => {
+                        const now = new Date();
+                        const start = new Date(now.getTime() - ms);
+                        const fmt = (d: Date) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+                        setBreastEntries((prev) => [...prev, { side: breastSide, startTime: fmt(start), endTime: fmt(now) }]);
+                      }}
+                    />
                   </div>
                   <p className="text-xs text-on-surface-variant text-center">veya manuel giriş:</p>
                   <div className="grid grid-cols-2 gap-3">

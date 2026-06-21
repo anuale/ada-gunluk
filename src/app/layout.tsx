@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Toaster } from "react-hot-toast";
 import { Providers } from "@/components/providers";
-import { PWARegister } from "@/components/pwa-register";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -28,7 +27,6 @@ export default function RootLayout({
     <html lang="tr" className="h-full antialiased">
       <body className="min-h-full flex flex-col bg-background text-on-surface font-sans text-base">
         <Providers>
-          <PWARegister />
           <Toaster
             position="bottom-center"
             toastOptions={{
